@@ -3,7 +3,7 @@ body {
     margin: 0;
     padding: 0;
     background-image: url('sfondo_ai.png');
-    background-size: contain;
+    background-size: 50% 100%; /* Larghezza del 50% e altezza del 100% rispetto all'elemento di sfondo */
     background-position: center;
 }
 
