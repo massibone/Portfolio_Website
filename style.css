@@ -36,7 +36,7 @@ section {
 footer {
     background-color: #6495ed; /* Colore cornflowerblue */
     color: #fff;
-    text-align: center;
+    text-align: left;
     padding: 20px;
     height: 40px; /* Imposta un'altezza più piccola per il footer */
 }
