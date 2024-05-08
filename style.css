@@ -31,6 +31,7 @@ nav ul li a {
 
 section {
     padding: 40px 20px;
+    background-image: none; /* Rimuovi l'immagine di sfondo dalla sezione */
 }
 
 footer {
