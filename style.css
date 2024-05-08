@@ -37,6 +37,7 @@ section {
 footer {
     background-color: #6495ed; /* Colore cornflowerblue */
     color: #fff;
+    background-image: none; /* Rimuovi l'immagine di sfondo dalla sezione */
     text-align: left;
     padding: 20px;
     height: 40px; /* Imposta un'altezza più piccola per il footer */
