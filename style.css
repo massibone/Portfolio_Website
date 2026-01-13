@@ -1,7 +1,9 @@
 
 /* display background color black on navbar scroll */
-.navbarScroll.navbarDark {
-    background-color: black;
+/* Aggiungi effetto scroll alla navbar */
+.navbarScroll.scrolled {
+    background-color: rgba(0, 0, 0, 0.9);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
 }
 
 /* hero background image */
@@ -65,7 +67,7 @@
     font-size: 36px;
     cursor: pointer;
 }
-.fa-facebook:hover,.fa-instagram:hover,.fa-twitter:hover,.fa-linkedin:hover, .fa-twitch:hover {
+.fa-facebook:hover,.fa-instagram:hover,.fa-twitter:hover,.fa-linkedin:hover, .fa-upwork:hover {
     color: #008000;
 }
 .fab {
@@ -73,6 +75,6 @@
 }
 /* footer styling */
 #footer {
-    background-color: #808080;
+    background-color: #a2a1a1;
     text-align: center;
 }
