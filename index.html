@@ -271,13 +271,12 @@
 
                 <div class="col-lg-6">
                     <!-- form fields -->
-                    <form>
-                        <input type="text" class="form-control form-control-lg" placeholder="Name">
-                        <input type="email" class="form-control mt-3" placeholder="Email">
-                        <input type="text" class="form-control mt-3" placeholder="Subject">
-                        <div class="mb-3 mt-3">
-                            <textarea class="form-control" rows="5" id="comment" name="text" placeholder="Project Details"></textarea>
-                        </div>
+                    <form action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+    <input type="text" name="name" class="form-control form-control-lg" placeholder="Name" required>
+    <input type="email" name="email" class="form-control mt-3" placeholder="Email" required>
+    <input type="text" name="subject" class="form-control mt-3" placeholder="Subject" required>
+    <textarea name="message" class="form-control" rows="5" placeholder="Project Details" required></textarea>
+    <button type="submit" class="btn btn-success mt-3">Contact Me</button>
                     </form>
                     <button type="button" class="btn btn-success mt-3">Contact Me</button>
                     
