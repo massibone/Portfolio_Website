@@ -1,23 +1,133 @@
+:root {
+    --cream: #f3eee6;
+    --sage: #a8b39e;
+    --olive: #7b8b72;
+    --brown: #6a5b4d;
+    --brown-dark: #43372f;
+    --brown-soft: #5c5046;
+    --text-light: #f7f3ec;
+    --text-muted: #7b6f66;
+    --border-soft: rgba(67, 55, 47, 0.08);
+    --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.10);
+    --nav-offset: 88px;
+}
+
+/* reset base */
 html {
     scroll-behavior: smooth;
-    scroll-padding-top: 90px;
+    scroll-padding-top: var(--nav-offset);
+}
+
+body {
+    background-color: var(--cream);
+    color: var(--brown-dark);
 }
 
 section {
-    scroll-margin-top: 90px;
+    scroll-margin-top: var(--nav-offset);
 }
 
-.section-offset {
-    padding-top: 120px;
-    padding-bottom: 120px;
+/* navbar */
+.navbarScroll {
+    background: rgba(67, 55, 47, 0.42);
+    backdrop-filter: blur(8px);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    padding-top: 0.9rem;
+    padding-bottom: 0.9rem;
+}
+
+.navbarScroll.scrolled {
+    background: rgba(67, 55, 47, 0.88);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
+
+.navbar-brand,
+.navbar-nav .nav-link {
+    color: var(--text-light) !important;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
+}
+
+.navbar-brand {
+    letter-spacing: 0.3px;
+    font-size: 1.3rem;
+}
+
+.navbar-nav .nav-link {
+    margin-left: 0.5rem;
+}
+
+.navbar-nav .nav-link:hover,
+.navbar-nav .nav-link:focus {
+    color: #ddd3c6 !important;
+}
+
+/* hero */
+.bgimage {
+    min-height: 100vh;
+    background:
+        linear-gradient(rgba(123, 139, 114, 0.18), rgba(67, 55, 47, 0.38)),
+        url('sfondo.jpg') center/cover no-repeat;
+    display: flex;
+    align-items: center;
+    padding: 0 2rem;
+    position: relative;
+}
+
+.hero-text-right {
+    margin-left: auto;
+    text-align: right;
+    max-width: 760px;
+    padding: 2.2rem 2rem;
+    background: rgba(67, 55, 47, 0.20);
+    border: 1px solid rgba(247, 243, 236, 0.10);
+    border-radius: 18px;
+    backdrop-filter: blur(5px);
+}
+
+.hero_title {
+    font-size: clamp(2.7rem, 5vw, 4.8rem);
+    line-height: 1.08;
+    margin-bottom: 1rem;
+    color: var(--text-light);
+    font-weight: 700;
+}
+
+.hero_desc {
+    font-size: clamp(1.05rem, 1.8vw, 1.3rem);
+    line-height: 1.7;
+    color: #eee7dc;
+    margin-left: auto;
+    max-width: 620px;
+}
+
+/* nascondi eventuale scritta Python gigante */
+.python-word,
+.hero-python,
+.big-python,
+.python-overlay,
+.bgimage .python-text,
+.bgimage span.python,
+.bgimage .python,
+.bgimage .overlay-text {
+    display: none !important;
+}
+
+/* sezioni principali */
+#about,
+#services,
+#portfolio,
+#contact {
+    min-height: calc(100vh - var(--nav-offset));
+    padding-top: 110px;
+    padding-bottom: 90px;
 }
 
 /* about */
 #about {
-    min-height: calc(100vh - 90px);
     display: flex;
     align-items: center;
-    background: #f3eee6;
+    background: var(--cream);
 }
 
 .about-section {
@@ -25,17 +135,20 @@ section {
 }
 
 .about-image-wrap {
-    max-width: 340px;
+    max-width: 320px;
     margin: 0 auto;
+    background: #f6f1ea;
+    border-radius: 20px;
+    padding: 0.75rem;
+    box-shadow: var(--shadow-soft);
 }
 
 .imageAboutPage {
     display: block;
     width: 100%;
     height: auto;
-    border-radius: 18px;
+    border-radius: 16px;
     object-fit: cover;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.10);
 }
 
 .about-content {
@@ -44,14 +157,14 @@ section {
 
 .about-title {
     font-size: clamp(2rem, 4vw, 3rem);
-    color: #43372f;
+    color: var(--brown-dark);
     margin-bottom: 1rem;
 }
 
 .about-lead {
     font-size: 1.15rem;
     line-height: 1.7;
-    color: #5c5046;
+    color: var(--brown-soft);
     margin-bottom: 1.2rem;
 }
 
@@ -62,19 +175,248 @@ section {
 }
 
 .about-meta li {
-    margin-bottom: 0.4rem;
+    margin-bottom: 0.45rem;
 }
 
 .about-text {
-    line-height: 1.8;
+    line-height: 1.85;
     color: #4e443b;
     margin-bottom: 1rem;
 }
 
-#services,
-#portfolio,
+/* services */
+#services {
+    background: #f7f3ec;
+}
+
+#services h1,
+#portfolio h1,
+#contact h1 {
+    color: var(--brown-dark);
+    margin-bottom: 0.75rem;
+}
+
+#services .text-muted,
+#portfolio .text-muted,
+#contact .text-muted {
+    color: var(--text-muted) !important;
+}
+
+.servicesText.card {
+    min-height: 280px;
+    cursor: pointer;
+    border: 1px solid var(--border-soft);
+    border-radius: 18px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.servicesText.card:hover {
+    transform: translateY(-6px);
+    border-color: var(--olive);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.10);
+}
+
+.servicesIcon {
+    font-size: 36px;
+    text-align: center;
+    width: 100%;
+    color: var(--brown);
+    transition: color 0.25s ease;
+}
+
+.card:hover .servicesIcon {
+    color: var(--olive);
+}
+
+.card-title {
+    text-align: center;
+    color: var(--brown-dark);
+}
+
+.card-text {
+    color: var(--brown-soft);
+    line-height: 1.7;
+}
+
+/* portfolio */
+#portfolio {
+    background: var(--cream);
+}
+
+#portfolio .card {
+    border: 1px solid var(--border-soft);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+#portfolio .card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 30px rgba(0, 0, 0, 0.10);
+}
+
+#portfolio .card-img-top {
+    height: 220px;
+    object-fit: cover;
+}
+
+#portfolio .card-body {
+    padding: 1.25rem;
+}
+
+#portfolio .card-title {
+    text-align: left;
+    margin-bottom: 0.75rem;
+}
+
+#portfolio .btn-success {
+    background-color: var(--olive);
+    border-color: var(--olive);
+    border-radius: 999px;
+    padding: 0.6rem 1.1rem;
+}
+
+#portfolio .btn-success:hover {
+    background-color: var(--brown);
+    border-color: var(--brown);
+}
+
+/* contact */
 #contact {
-    min-height: calc(100vh - 90px);
-    padding-top: 110px;
-    padding-bottom: 90px;
+    background: #f7f3ec;
+}
+
+.contactContent iframe {
+    border-radius: 18px;
+    box-shadow: var(--shadow-soft);
+}
+
+.form-control {
+    border-radius: 14px;
+    border: 1px solid rgba(67, 55, 47, 0.12);
+    padding: 0.85rem 1rem;
+}
+
+.form-control:focus {
+    border-color: var(--olive);
+    box-shadow: 0 0 0 0.2rem rgba(123, 139, 114, 0.15);
+}
+
+.btn-success {
+    background-color: var(--olive);
+    border-color: var(--olive);
+    border-radius: 999px;
+    padding: 0.7rem 1.2rem;
+    font-weight: 600;
+}
+
+.btn-success:hover {
+    background-color: var(--brown);
+    border-color: var(--brown);
+}
+
+/* social icons */
+.social-icons {
+    font-size: 34px;
+    cursor: pointer;
+}
+
+.social-icons a {
+    color: var(--brown-dark);
+    margin: 0 0.35rem;
+    text-decoration: none;
+}
+
+.fa-facebook:hover,
+.fa-instagram:hover,
+.fa-twitter:hover,
+.fa-linkedin:hover,
+.fa-upwork:hover,
+.fa-github:hover,
+.fa-briefcase:hover {
+    color: var(--olive);
+}
+
+/* footer */
+#footer {
+    background-color: #d9d1c7;
+    text-align: center;
+    color: var(--brown-dark);
+    padding: 2rem 0;
+}
+
+#footer .btn-success {
+    margin: 0 0.5rem;
+}
+
+/* responsive */
+@media (max-width: 992px) {
+    .hero-text-right {
+        max-width: 100%;
+        text-align: center;
+        margin-left: 0;
+    }
+
+    .hero_desc {
+        margin-left: auto;
+        margin-right: auto;
+        text-align: center;
+    }
+
+    #about,
+    #services,
+    #portfolio,
+    #contact {
+        min-height: auto;
+        padding-top: 100px;
+        padding-bottom: 80px;
+    }
+
+    .about-content {
+        max-width: 100%;
+        text-align: left;
+    }
+
+    .about-image-wrap {
+        margin-bottom: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    :root {
+        --nav-offset: 78px;
+    }
+
+    .bgimage {
+        padding: 0 1rem;
+        min-height: 100vh;
+    }
+
+    .hero-text-right {
+        padding: 1.5rem 1.2rem;
+        border-radius: 16px;
+    }
+
+    .hero_title {
+        font-size: clamp(2rem, 10vw, 3rem);
+    }
+
+    .hero_desc {
+        font-size: 1rem;
+        line-height: 1.65;
+    }
+
+    .servicesText.card {
+        min-height: auto;
+    }
+
+    #portfolio .card-img-top {
+        height: 200px;
+    }
+
+    .navbar-brand {
+        font-size: 1.1rem;
+    }
 }
