@@ -78,3 +78,66 @@
 .bgimage span.python {
     display: none !important;
 }
+/* offset sezioni per navbar fixed */
+section {
+    scroll-margin-top: 90px;
+}
+
+.section-offset {
+    padding-top: 110px;
+    padding-bottom: 90px;
+}
+
+/* about */
+.about-section {
+    max-width: 1100px;
+}
+
+.about-image-wrap {
+    max-width: 320px;
+    margin: 0 auto;
+}
+
+.imageAboutPage {
+    width: 100%;
+    border-radius: 18px;
+    object-fit: cover;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.10);
+}
+
+.about-content {
+    max-width: 700px;
+}
+
+.about-title {
+    font-size: clamp(2rem, 4vw, 3rem);
+    color: #43372f;
+    margin-bottom: 1rem;
+}
+
+.about-lead {
+    font-size: 1.15rem;
+    line-height: 1.7;
+    color: #5c5046;
+    margin-bottom: 1.2rem;
+}
+
+.about-meta {
+    padding-left: 1.2rem;
+    margin-bottom: 1.2rem;
+    color: #4e443b;
+}
+
+.about-meta li {
+    margin-bottom: 0.4rem;
+}
+
+.about-text {
+    line-height: 1.8;
+    color: #4e443b;
+    margin-bottom: 1rem;
+}
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 90px;
+}
