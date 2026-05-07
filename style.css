@@ -420,3 +420,109 @@ section {
         font-size: 1.1rem;
     }
 }
+/* portfolio layout */
+.portfolio-header {
+    max-width: 760px;
+    margin: 0 auto 1.5rem;
+}
+
+.portfolio-subtitle {
+    font-size: clamp(1.4rem, 2vw, 2rem);
+    color: var(--brown-dark);
+    margin-bottom: 0.5rem;
+}
+
+.portfolio-group {
+    margin-top: 1rem;
+}
+
+.portfolioCard {
+    border: 1px solid var(--border-soft);
+    border-radius: 20px;
+    overflow: hidden;
+    background: #fbf8f3;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.portfolioCard:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.10);
+}
+
+.portfolioCard .card-img-top {
+    width: 100%;
+    height: 240px;
+    object-fit: cover;
+    background: #ece7dd;
+}
+
+.featured-card .card-img-top {
+    height: 260px;
+}
+
+.portfolioCard .card-body {
+    padding: 1.4rem;
+}
+
+.project-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-bottom: 0.9rem;
+}
+
+.project-tag {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    background: rgba(123, 139, 114, 0.12);
+    color: var(--brown-dark);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.portfolioCard .card-title {
+    text-align: left;
+    margin-bottom: 0.85rem;
+    color: var(--brown-dark);
+}
+
+.portfolioCard .card-text {
+    color: var(--brown-soft);
+    line-height: 1.75;
+    margin-bottom: 1.2rem;
+}
+
+.portfolio-actions {
+    margin-top: auto;
+}
+
+.portfolio-sidecopy {
+    max-width: 720px;
+    margin-bottom: 1.25rem;
+}
+
+.side-project-card {
+    background: linear-gradient(180deg, #fbf8f3 0%, #f6f1ea 100%);
+}
+
+.calcetto-card {
+    background: #fbf8f3;
+}
+
+.calcetto-placeholder {
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 1rem;
+}
+
+@media (max-width: 768px) {
+    .portfolioCard .card-img-top,
+    .featured-card .card-img-top {
+        height: 210px;
+    }
+}
