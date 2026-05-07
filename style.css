@@ -35,7 +35,7 @@
     min-height: 100vh;
     background:
         linear-gradient(rgba(123, 139, 114, 0.22), rgba(67, 55, 47, 0.42)),
-        url('sfondo1.png') center/cover no-repeat;
+        url('sfondo.jpg') center/cover no-repeat;
     display: flex;
     align-items: center;
     padding: 0 2rem;
