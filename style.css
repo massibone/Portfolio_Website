@@ -239,50 +239,163 @@ section {
     line-height: 1.7;
 }
 
-/* portfolio */
+/* portfolio: meno ingombrante */
 #portfolio {
     background: var(--cream);
+    padding-top: 90px;
+    padding-bottom: 70px;
+    min-height: auto;
 }
 
-#portfolio .card {
+.portfolio-header {
+    max-width: 680px;
+    margin: 0 auto 1rem;
+}
+
+.portfolio-subtitle {
+    font-size: clamp(1.25rem, 1.8vw, 1.8rem);
+    color: var(--brown-dark);
+    margin-bottom: 0.35rem;
+}
+
+.portfolio-group {
+    margin-top: 0.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.portfolioCard {
     border: 1px solid var(--border-soft);
     border-radius: 18px;
     overflow: hidden;
+    background: #fbf8f3;
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
     transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-#portfolio .card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 16px 30px rgba(0, 0, 0, 0.10);
+.portfolioCard:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
 }
 
-#portfolio .card-img-top {
-    height: 220px;
+.portfolioCard .card-img-top {
+    width: 100%;
+    height: 170px;
     object-fit: cover;
+    background: #ece7dd;
 }
 
-#portfolio .card-body {
-    padding: 1.25rem;
+.featured-card .card-img-top {
+    height: 190px;
 }
 
-#portfolio .card-title {
-    text-align: left;
-    margin-bottom: 0.75rem;
+.portfolioCard .card-body {
+    padding: 1.1rem;
 }
 
-#portfolio .btn-success {
-    background-color: var(--olive);
-    border-color: var(--olive);
+.project-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 0.8rem;
+}
+
+.project-tag {
+    display: inline-block;
+    padding: 0.3rem 0.7rem;
     border-radius: 999px;
-    padding: 0.6rem 1.1rem;
+    background: rgba(123, 139, 114, 0.12);
+    color: var(--brown-dark);
+    font-size: 0.8rem;
+    font-weight: 600;
 }
 
-#portfolio .btn-success:hover {
-    background-color: var(--brown);
-    border-color: var(--brown);
+.portfolioCard .card-title {
+    text-align: left;
+    margin-bottom: 0.7rem;
+    color: var(--brown-dark);
+    font-size: 1.25rem;
 }
 
+.portfolioCard .card-text {
+    color: var(--brown-soft);
+    line-height: 1.65;
+    margin-bottom: 1rem;
+    font-size: 0.98rem;
+}
+
+.portfolio-actions {
+    margin-top: auto;
+}
+
+.portfolio-sidecopy {
+    max-width: 680px;
+    margin-bottom: 1rem;
+}
+
+/* featured projects meno larghi */
+@media (min-width: 992px) {
+    #portfolio .featured-card {
+        max-width: 92%;
+    }
+}
+
+/* other projects più compatti */
+#portfolio .portfolio-group .col-lg-6.col-xl-4 .portfolioCard .card-img-top {
+    height: 150px;
+}
+
+/* separazione forte prima di contact */
+#contact {
+    background: #f7f3ec;
+    min-height: auto;
+    padding-top: 120px;
+    padding-bottom: 90px;
+    margin-top: 40px;
+    border-top: 1px solid rgba(67, 55, 47, 0.08);
+}
+
+.contactContent {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+/* evita effetto incastro con mappa e form */
+.contactContent .row {
+    align-items: start;
+}
+
+/* mappa più fluida */
+.contactContent iframe {
+    border-radius: 18px;
+    box-shadow: var(--shadow-soft);
+    width: 100%;
+    min-height: 360px;
+}
+
+/* rimuovi larghezza fissa che rompe il layout */
+#contact div[style*="width:500px"] {
+    width: 100% !important;
+    height: 360px !important;
+    max-width: 100% !important;
+}
+
+/* mobile */
+@media (max-width: 768px) {
+    .portfolioCard .card-img-top,
+    .featured-card .card-img-top {
+        height: 160px;
+    }
+
+    #portfolio {
+        padding-top: 80px;
+        padding-bottom: 60px;
+    }
+
+    #contact {
+        padding-top: 90px;
+        margin-top: 20px;
+    }
+}
 /* contact */
 #contact {
     background: #f7f3ec;
