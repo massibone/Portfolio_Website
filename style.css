@@ -1,105 +1,37 @@
-:root {
-    --cream: #f3eee6;
-    --sage: #a8b39e;
-    --olive: #7b8b72;
-    --brown: #6a5b4d;
-    --brown-dark: #43372f;
-    --text-light: #f7f3ec;
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 90px;
 }
 
-/* navbar */
-.navbarScroll {
-    background: rgba(67, 55, 47, 0.42);
-    backdrop-filter: blur(8px);
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.navbarScroll.scrolled {
-    background: rgba(67, 55, 47, 0.88);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
-}
-
-.navbar-brand,
-.navbar-nav .nav-link {
-    color: var(--text-light) !important;
-    font-weight: 600;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.28);
-}
-
-.navbar-brand {
-    letter-spacing: 0.3px;
-}
-
-/* hero */
-.bgimage {
-    min-height: 100vh;
-    background:
-        linear-gradient(rgba(123, 139, 114, 0.22), rgba(67, 55, 47, 0.42)),
-        url('sfondo.jpg') center/cover no-repeat;
-    display: flex;
-    align-items: center;
-    padding: 0 2rem;
-    position: relative;
-}
-
-.hero-text-right {
-    margin-left: auto;
-    text-align: right;
-    max-width: 760px;
-    padding: 2.2rem 2rem;
-    background: rgba(67, 55, 47, 0.20);
-    border: 1px solid rgba(247, 243, 236, 0.10);
-    border-radius: 18px;
-    backdrop-filter: blur(5px);
-}
-
-.hero_title {
-    font-size: clamp(2.7rem, 5vw, 4.8rem);
-    line-height: 1.08;
-    margin-bottom: 1rem;
-    color: var(--text-light);
-    font-weight: 700;
-}
-
-.hero_desc {
-    font-size: clamp(1.05rem, 1.8vw, 1.3rem);
-    line-height: 1.7;
-    color: #eee7dc;
-    margin-left: auto;
-    max-width: 620px;
-}
-
-/* nascondi la scritta Python gigante */
-.python-word,
-.hero-python,
-.big-python,
-.python-overlay,
-.bgimage .python-text,
-.bgimage span.python {
-    display: none !important;
-}
-/* offset sezioni per navbar fixed */
 section {
     scroll-margin-top: 90px;
 }
 
 .section-offset {
-    padding-top: 110px;
-    padding-bottom: 90px;
+    padding-top: 120px;
+    padding-bottom: 120px;
 }
 
 /* about */
+#about {
+    min-height: 78vh;
+    display: flex;
+    align-items: center;
+}
+
 .about-section {
     max-width: 1100px;
 }
 
 .about-image-wrap {
-    max-width: 320px;
+    max-width: 340px;
     margin: 0 auto;
 }
 
 .imageAboutPage {
+    display: block;
     width: 100%;
+    height: auto;
     border-radius: 18px;
     object-fit: cover;
     box-shadow: 0 10px 30px rgba(0,0,0,0.10);
@@ -136,8 +68,4 @@ section {
     line-height: 1.8;
     color: #4e443b;
     margin-bottom: 1rem;
-}
-html {
-    scroll-behavior: smooth;
-    scroll-padding-top: 90px;
 }
