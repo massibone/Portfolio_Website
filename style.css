@@ -14,9 +14,10 @@ section {
 
 /* about */
 #about {
-    min-height: 78vh;
+    min-height: calc(100vh - 90px);
     display: flex;
     align-items: center;
+    background: #f3eee6;
 }
 
 .about-section {
@@ -68,4 +69,12 @@ section {
     line-height: 1.8;
     color: #4e443b;
     margin-bottom: 1rem;
+}
+
+#services,
+#portfolio,
+#contact {
+    min-height: calc(100vh - 90px);
+    padding-top: 110px;
+    padding-bottom: 90px;
 }
