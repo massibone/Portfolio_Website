@@ -6,444 +6,196 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <meta name="description" content="I build useful software for workflows, data handling and digital tasks.">
-  <meta name="keywords" content="python developer, web developer, automation, Florence, IT">
+  <meta name="keywords" content="python developer, automation, data tools, workflow, Florence, IT">
 
-  <!-- linking css file -->
-  <link rel="stylesheet" href="style.css">
-  <!-- bootstrap CDN -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- font awesome -->
   <script src="https://kit.fontawesome.com/31149d48b0.js" crossorigin="anonymous"></script>
 </head>
 
 <body>
-    <!-- navbar -->
-    <nav class="navbar navbar-expand-lg fixed-top navbar-dark navbarScroll">
-        <div class="container">
-            <a class="navbar-brand" href="#home">Massimo Bonechi</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
-                    aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#home">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#about">About</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#services">Services</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#portfolio">Portfolio</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#contact">Contact</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+  <!-- navbar -->
+  <nav class="navbar navbar-expand-lg fixed-top navbar-dark navbarScroll">
+    <div class="container">
+      <a class="navbar-brand" href="#home">Massimo Bonechi</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+              data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+              aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
 
-    <!-- main banner -->
-    <section class="bgimage" id="home">
-        <div class="container-fluid h-100 d-flex align-items-center">
-            <div class="row w-100 justify-content-end">
-                <div class="col-lg-7 col-md-9 col-12 hero-text hero-text-right">
-                    <h1 class="hero_title">Python, automation and useful tools</h1>
-                    <p class="hero_desc">
-                        I build practical Python projects for workflows, data handling and digital tasks,
-                        combining IT support experience with software craftsmanship.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="#home">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+          <li class="nav-item"><a class="nav-link" href="#services">Services</a></li>
+          <li class="nav-item"><a class="nav-link" href="#portfolio">Portfolio</a></li>
+          <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
 
-    <!-- about section-->
-<section id="about" class="section-offset">
+  <!-- hero -->
+  <section class="bgimage" id="home">
+    <div class="container-fluid h-100 d-flex align-items-center">
+      <div class="row w-100 justify-content-end">
+        <div class="col-lg-7 col-md-9 col-12 hero-text hero-text-right">
+          <h1 class="hero_title">Python, automation and useful tools</h1>
+          <p class="hero_desc">
+            I build practical Python projects for workflows, data handling and digital tasks,
+            combining IT support experience with software craftsmanship.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- about -->
+  <section id="about" class="section-offset">
     <div class="container about-section">
-        <div class="row align-items-center g-5">
-            <div class="col-lg-4 col-md-5">
-                <div class="about-image-wrap">
-                    <img src="AboutMe.jpg" class="imageAboutPage" alt="Portrait of Massimo Bonechi">
-                </div>
-            </div>
-
-            <div class="col-lg-8 col-md-7">
-                <div class="about-content">
-                    <h2 class="about-title">About Me</h2>
-                    <p class="about-lead">
-                        Python developer and IT technician with a strong interest in automation,
-                        practical tools and digital workflows.
-                    </p>
-
-                    <ul class="about-meta">
-                        <li><strong>Name:</strong> Massimo Bonechi</li>
-                        <li><strong>Based in:</strong> Florence, Italy</li>
-                        <li><strong>Focus:</strong> Python automation, data tools, document workflows</li>
-                    </ul>
-
-                    <p class="about-text">
-                        I build practical software for repetitive tasks, data handling and document-related workflows.
-                        Alongside my IT support experience, I maintain open-source projects such as
-                        <strong>Daily Python Scripts</strong>, <strong>Math Explained with Python</strong>,
-                        and tools for statistical analysis and document management.
-                    </p>
-
-                    <p class="about-text mb-0">
-                        My background combines technical support, software problem-solving and a creative interest
-                        in photography, helping me approach projects with both structure and attention to detail.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-  <!-- services section-->
-<section id="services">
-<div class="container">
-<h1 class="text-center">What I Do</h1>
-<p class="text-center mb-5 text-muted">Combining IT support expertise with Python development and photography</p>
-
-<div class="row">
-<!-- Core IT Work -->
-<div class="col-lg-4 mt-4">
-<div class="card servicesText">
-<div class="card-body">
-<i class="fas servicesIcon fa-headset"></i>
-<h4 class="card-title mt-3">IT Technical Support</h4>
-<p class="card-text mt-3">Full-time IT support specialist at a company in Florence, managing remote signature systems and protocol management software. Daily troubleshooting, user assistance, and system maintenance for critical business operations.
-</p>
-</div>
-</div>
-</div>
-
-<!-- Python Development -->
-<div class="col-lg-4 mt-4">
-<div class="card servicesText">
-<div class="card-body">
-<i class='fab servicesIcon fa-python'></i>
-<h4 class="card-title mt-3">Python Development</h4>
-<p class="card-text mt-3">Building automation tools and utilities in Python: document processing, data analysis, image manipulation, and workflow automation. Active contributor on GitHub with 30+ repositories covering various problem domains.
-</p>
-</div>
-</div>
-</div>
-
-<!-- Photography -->
-<div class="col-lg-4 mt-4">
-<div class="card servicesText">
-<div class="card-body">
-<i class='fas servicesIcon fa-camera'></i>
-<h4 class="card-title mt-3">Photography</h4>
-<p class="card-text mt-3">Passionate photographer based in Florence, Italy. Combining creative vision with technical skills to automate photo processing, EXIF data management, and image organization using custom Python scripts.
-</p>
-</div>
-</div>
-</div>
-</div>
-
-<div class="row">
-<!-- Freelance/Available Services -->
-<div class="col-lg-4 mt-4">
-<div class="card servicesText">
-<div class="card-body">
-<i class='fas servicesIcon fa-code'></i>
-<h4 class="card-title mt-3">Custom Script Development</h4>
-<p class="card-text mt-3">Available for custom Python script development: task automation, data processing pipelines, file conversion tools, and specialized utilities. Turning repetitive manual tasks into efficient automated solutions.
-</p>
-</div>
-</div>
-</div>
-
-<!-- Teaching/Mentoring -->
-<div class="col-lg-4 mt-4">
-<div class="card servicesText">
-<div class="card-body">
-<i class='fas servicesIcon fa-chalkboard-teacher'></i>
-<h4 class="card-title mt-3">Technical Mentoring</h4>
-<p class="card-text mt-3">Sharing knowledge through open-source educational projects on GitHub. Topics include Python programming, mathematical concepts, statistical analysis, and practical problem-solving approaches for learners at all levels.
-</p>
-</div>
-</div>
-</div>
-
-<!-- Data Tools -->
-<div class="col-lg-4 mt-4">
-<div class="card servicesText">
-<div class="card-body">
-<i class='fas servicesIcon fa-database'></i>
-<h4 class="card-title mt-3">Data Processing Tools</h4>
-<p class="card-text mt-3">Creating tools for data manipulation and analysis: CSV cleaning and merging, JSON conversion, statistical analysis, probability calculations, and visualization. Making data work easier and more efficient.
-</p>
-</div>
-</div>
-</div>
-</div>
-</div>
-</section>
-
-<!-- portfolio section-->
-<section id="portfolio">
-  <div class="container">
-    <div class="portfolio-header text-center">
-      <h1>Portfolio</h1>
-      <p class="text-muted">
-        Selected Python projects focused on automation, data handling and practical tools.
-      </p>
-    </div>
-
-    <!-- Featured Projects -->
-    <div class="portfolio-group">
-      <h2 class="portfolio-subtitle">Featured Projects</h2>
-      <div class="row">
-        <div class="col-lg-6 mt-4">
-          <div class="card portfolioCard featured-card h-100">
-            <img class="card-img-top" src="daily.jpg" alt="Daily Python Scripts project">
-            <div class="card-body">
-              <div class="project-tags">
-                <span class="project-tag">Python</span>
-                <span class="project-tag">Automation</span>
-                <span class="project-tag">Utilities</span>
-              </div>
-              <h4 class="card-title">Daily Python Scripts</h4>
-              <p class="card-text">
-                A practical collection of Python tools for recurring digital tasks including PDF handling,
-                image processing, CSV/JSON conversion, web scraping and automation workflows.
-              </p>
-              <div class="portfolio-actions">
-                <a href="https://github.com/massibone/Daily-Script-Python"
-                   class="btn btn-success" target="_blank" rel="noopener noreferrer">
-                  <i class="fab fa-github"></i> View Code
-                </a>
-              </div>
-            </div>
+      <div class="row align-items-center g-5">
+        <div class="col-lg-4 col-md-5">
+          <div class="about-image-wrap">
+            <img src="AboutMe.jpg" class="imageAboutPage" alt="Portrait of Massimo Bonechi">
           </div>
         </div>
 
-        <div class="col-lg-6 mt-4">
-          <div class="card portfolioCard featured-card h-100">
-            <img class="card-img-top" src="images/portfolioImage1.jpg" alt="PEC PDF Toolkit project">
-            <div class="card-body">
-              <div class="project-tags">
-                <span class="project-tag">Python</span>
-                <span class="project-tag">Documents</span>
-                <span class="project-tag">Workflow</span>
-              </div>
-              <h4 class="card-title">PEC PDF Toolkit</h4>
-              <p class="card-text">
-                A document-focused Python toolkit for handling PEC and PDF workflows, designed for practical
-                use in IT support and protocol management environments.
-              </p>
-              <div class="portfolio-actions">
-                <a href="https://github.com/massibone/pec-pdf-python-toolkit"
-                   class="btn btn-success" target="_blank" rel="noopener noreferrer">
-                  <i class="fab fa-github"></i> View Code
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
+        <div class="col-lg-8 col-md-7">
+          <div class="about-content">
+            <h2 class="about-title">About Me</h2>
+            <p class="about-lead">
+              Python developer and IT technician with a strong interest in automation,
+              practical tools and digital workflows.
+            </p>
 
-        <div class="col-lg-6 mt-4">
-          <div class="card portfolioCard featured-card h-100">
-            <img class="card-img-top" src="Image3.jpg" alt="Probability and Statistics project">
-            <div class="card-body">
-              <div class="project-tags">
-                <span class="project-tag">Python</span>
-                <span class="project-tag">Statistics</span>
-                <span class="project-tag">Analysis</span>
-              </div>
-              <h4 class="card-title">Probability &amp; Statistics</h4>
-              <p class="card-text">
-                Python implementations of statistical methods including ANOVA, regression,
-                hypothesis testing and probability models for learning and applied analysis.
-              </p>
-              <div class="portfolio-actions">
-                <a href="https://github.com/massibone/Probability_and_Statistics_Python"
-                   class="btn btn-success" target="_blank" rel="noopener noreferrer">
-                  <i class="fab fa-github"></i> View Code
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
+            <ul class="about-meta">
+              <li><strong>Name:</strong> Massimo Bonechi</li>
+              <li><strong>Based in:</strong> Florence, Italy</li>
+              <li><strong>Focus:</strong> Python automation, data tools, document workflows</li>
+            </ul>
 
-        <div class="col-lg-6 mt-4">
-          <div class="card portfolioCard featured-card h-100">
-            <img class="card-img-top" src="Image4.jpg" alt="Math Explained with Python project">
-            <div class="card-body">
-              <div class="project-tags">
-                <span class="project-tag">Python</span>
-                <span class="project-tag">Education</span>
-                <span class="project-tag">Math</span>
-              </div>
-              <h4 class="card-title">Math Explained with Python</h4>
-              <p class="card-text">
-                An educational repository that uses Python code to explain algebra,
-                geometry, discrete math and simulation-based concepts in a practical way.
-              </p>
-              <div class="portfolio-actions">
-                <a href="https://github.com/massibone/MathExplainedWithPython"
-                   class="btn btn-success" target="_blank" rel="noopener noreferrer">
-                  <i class="fab fa-github"></i> View Code
-                </a>
-              </div>
-            </div>
+            <p class="about-text">
+              I build practical software for repetitive tasks, data handling and document-related workflows.
+              Alongside my IT support experience, I maintain open-source projects such as
+              <strong>Daily Python Scripts</strong>, <strong>Math Explained with Python</strong>,
+              and tools for statistical analysis and document management.
+            </p>
+
+            <p class="about-text mb-0">
+              My background combines technical support, software problem-solving and a creative interest
+              in photography, helping me approach projects with both structure and attention to detail.
+            </p>
           </div>
         </div>
       </div>
     </div>
+  </section>
 
-    <!-- Other Projects -->
-    <div class="portfolio-group mt-5">
-      <h2 class="portfolio-subtitle">Other Projects</h2>
-      <div class="row">
-        <div class="col-lg-6 col-xl-4 mt-4">
-          <div class="card portfolioCard h-100">
-            <img class="card-img-top" src="Image4.jpg" alt="Python Problem Solving project">
-            <div class="card-body">
-              <div class="project-tags">
-                <span class="project-tag">Algorithms</span>
-                <span class="project-tag">Exercises</span>
-              </div>
-              <h4 class="card-title">Python Problem Solving</h4>
-              <p class="card-text">
-                A collection of solutions for coding challenges, image-processing exercises and practical Python experiments.
-              </p>
-              <div class="portfolio-actions">
-                <a href="https://github.com/massibone/Python_Various_Problems"
-                   class="btn btn-success" target="_blank" rel="noopener noreferrer">
-                  <i class="fab fa-github"></i> View Code
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-lg-6 col-xl-4 mt-4">
-          <div class="card portfolioCard h-100">
-            <img class="card-img-top" src="images/portfolioImage4.jpg" alt="Machine Learning project">
-            <div class="card-body">
-              <div class="project-tags">
-                <span class="project-tag">ML</span>
-                <span class="project-tag">Flask</span>
-                <span class="project-tag">In Progress</span>
-              </div>
-              <h4 class="card-title">ML Portfolio App</h4>
-              <p class="card-text">
-                An interactive application showcasing machine learning projects for classification,
-                phishing detection and applied experimentation.
-              </p>
-              <div class="portfolio-actions">
-                <span class="badge bg-warning text-dark mb-2">
-                  <i class="fas fa-code-branch"></i> In Development
-                </span>
-                <p class="mb-0"><small class="text-muted">Coming soon</small></p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-lg-6 col-xl-4 mt-4">
-          <div class="card portfolioCard side-project-card h-100">
-            <div class="card-body">
-              <div class="project-tags">
-                <span class="project-tag">Live Data</span>
-                <span class="project-tag">Google Sheets</span>
-                <span class="project-tag">Side Project</span>
-              </div>
-              <h4 class="card-title">Calcetto League Table</h4>
-              <p class="card-text">
-                A live side project showing an always-updated calcetto ranking embedded from Google Sheets.
-              </p>
-              <div class="portfolio-actions">
-                <a href="#calcetto" class="btn btn-success">View Live Table</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Side Project Detail -->
-    <div class="portfolio-group mt-5" id="calcetto">
-      <h2 class="portfolio-subtitle">Side Project: Calcetto League Table</h2>
-      <p class="text-muted portfolio-sidecopy">
-        Updated automatically from Google Sheets. You can embed the sheet directly or render it as a styled table.
+  <!-- services -->
+  <section id="services">
+    <div class="container">
+      <h1 class="text-center">What I Do</h1>
+      <p class="text-center mb-5 text-muted">
+        Combining IT support expertise with Python development and practical digital tools
       </p>
 
-      <div class="card portfolioCard calcetto-card">
-        <div class="card-body">
-          <div class="calcetto-placeholder">
-            <p class="mb-3">Replace this block with your Google Sheets live ranking table.</p>
-            <a href="#" class="btn btn-success">Open Ranking</a>
+      <div class="row">
+        <div class="col-lg-4 mt-4">
+          <div class="card servicesText">
+            <div class="card-body">
+              <i class="fas servicesIcon fa-headset"></i>
+              <h4 class="card-title mt-3">IT Technical Support</h4>
+              <p class="card-text mt-3">
+                Full-time IT support specialist in Florence, working on remote signature systems,
+                protocol management software, troubleshooting and user assistance.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4 mt-4">
+          <div class="card servicesText">
+            <div class="card-body">
+              <i class="fab servicesIcon fa-python"></i>
+              <h4 class="card-title mt-3">Python Development</h4>
+              <p class="card-text mt-3">
+                Building automation tools for document processing, data analysis, workflow automation
+                and practical software utilities.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4 mt-4">
+          <div class="card servicesText">
+            <div class="card-body">
+              <i class="fas servicesIcon fa-database"></i>
+              <h4 class="card-title mt-3">Data Processing Tools</h4>
+              <p class="card-text mt-3">
+                Creating tools for CSV cleaning, JSON conversion, statistical analysis,
+                probability calculations and workflow simplification.
+              </p>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-</section>
-  
-<!-- contact section-->
-<section id="contact">
-<div class="container mt-3 contactContent">
-<h1 class="text-center">Contact Me</h1>
+  </section>
 
-<div class="row mt-4">
-<div class="col-lg-6">
-<!-- to edit google map goto https://www.embed-map.com type your location, generate html code and copy the html -->
-<div style="max-width:100%;overflow:hidden;color:red;width:500px;height:500px;">
-<div id="embedmap-canvas" style="height:100%; width:100%;max-width:100%;">
-<iframe style="height:100%;width:100%;border:0;" frameborder="0" src="https://www.google.com/maps/embed/v1/place?q=florence&key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8">
-</iframe>
-</div>
-<a class="googlemaps-html" href="https://www.embed-map.com" id="get-data-forembedmap">https://www.embed-map.com</a>
-<style>#embedmap-canvas img{max-width:none!important;background:none!important;font-size: inherit;font-weight:inherit;}
-</style>
-</div>
-</div>
+  <!-- portfolio -->
+  <section id="portfolio">
+    <div class="container">
+      <div class="portfolio-header text-center">
+        <h1>Portfolio</h1>
+        <p class="text-muted">
+          Selected Python projects focused on automation, data handling and practical tools.
+        </p>
+      </div>
 
-<div class="col-lg-6">
-<!-- form fields -->
-<form action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
-<input type="text" name="name" class="form-control form-control-lg" placeholder="Name" required>
-<input type="email" name="email" class="form-control mt-3" placeholder="Email" required>
-<input type="text" name="subject" class="form-control mt-3" placeholder="Subject" required>
-<textarea name="message" class="form-control" rows="5" placeholder="Project Details" required></textarea>
+      <!-- featured -->
+      <div class="portfolio-group">
+        <h2 class="portfolio-subtitle">Featured Projects</h2>
+        <div class="row">
+          <div class="col-lg-6 mt-4">
+            <div class="card portfolioCard featured-card h-100">
+              <div class="project-cover project-cover-daily">
+                <div class="project-cover-inner">
+                  <p class="cover-kicker">Python utility collection</p>
+                  <h3 class="cover-title">Daily Python Scripts</h3>
 
-</form>
-<button type="button" class="btn btn-success mt-3">Contact Me</button>
+                  <div class="cover-tags">
+                    <span>PDF</span>
+                    <span>CSV</span>
+                    <span>Images</span>
+                    <span>Automation</span>
+                  </div>
 
-</div>
+                  <div class="cover-code">
+                    <span>&gt; merge_pdfs.py</span>
+                    <span>&gt; convert_csv_json.py</span>
+                    <span>&gt; resize_images.py</span>
+                  </div>
+                </div>
+              </div>
 
-</div>
-</div>
-</section>
-<!-- footer section-->
-<footer id="footer">
-<div class="container-fluid">
-<!-- social media icons -->
-<div class="social-icons mt-4">
-<a href="https://www.facebook.com/" target="_blank"><i class="fab fa-facebook"></i></a>
-<a href="https://www.instagram.com/" target="_blank"><i class="fab fa-instagram"></i></a>
-<a href="https://github.com/massibone/" class="btn btn-success" target="_blank">View on GitHub</a>
-<a href="https://www.linkedin.com/in/massimo-bonechi/" target="_blank"><i class="fab fa-linkedin"></i></a>
-<a href="https://www.upwork.com/freelancers/~010271a39e1c17a35c" target="_blank" rel="noopener">
-<i class="fas fa-briefcase"></i> <!-- Upwork non ha icona ufficiale in FontAwesome -->
-</a>
-</div>
-</div>
-</footer>
+              <div class="card-body">
+                <h4 class="card-title">Daily Python Scripts</h4>
+                <p class="card-text">
+                  A practical collection of Python tools for recurring digital tasks including PDF handling,
+                  image processing, CSV/JSON conversion, web scraping and automation workflows.
+                </p>
+                <div class="portfolio-actions">
+                  <a href="https://github.com/massibone/Daily-Script-Python"
+                     class="btn btn-success" target="_blank" rel="noopener noreferrer">
+                    <i class="fab fa-github"></i> View Code
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
 
-<!-- load javascript after loading all html content -->
-<script src="script/script.js"></script>
-
-</body>
-
-</html>
+          <div class="col-lg-6 mt-4">
+            <div class="card portfolioCard 
