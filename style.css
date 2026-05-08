@@ -268,16 +268,19 @@ section {
     margin-bottom: 2rem;
 }
 
-.portfolioCard {
-    border: 1px solid var(--border-soft);
-    border-radius: 18px;
-    overflow: hidden;
-    background: var(--card-bg);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
-    height: 100%;
+.portfolioCard .card-img-top {
+    display: block;
+    width: 100%;
+    height: 140px;
+    object-fit: cover;
+    object-position: center;
+    background-color: #e9e4da;
+    border-bottom: 1px solid rgba(67, 55, 47, 0.06);
 }
 
+.featured-card .card-img-top {
+    height: 150px;
+}
 .portfolioCard:hover {
     transform: translateY(-4px);
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
