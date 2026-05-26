@@ -75,29 +75,50 @@
 <!-- Chart.js (CDN) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-/* ---------- Utility ---------- */
+    /* ---------- Utility ---------- */
 const storageKey = 'speseFlash';
 function loadData(){ return JSON.parse(localStorage.getItem(storageKey)||'[]'); }
 function saveData(arr){ localStorage.setItem(storageKey, JSON.stringify(arr)); }
 
-/* ---------- Rendering ---------- */
+/* ---------- Rendering filtrato per Mese ---------- */
 const lista = document.getElementById('listaSpese');
 const totaleEl = document.getElementById('totaleMese');
+
 function render(){
     const spese = loadData();
+    const ora = new Date();
+    // Filtro: mostra solo spese del mese e anno correnti
+    const speseMese = spese.filter(s => {
+        const d = new Date(s.data);
+        return d.getMonth() === ora.getMonth() && d.getFullYear() === ora.getFullYear();
+    });
+
     lista.innerHTML = '';
     let totale = 0;
-    spese.forEach(s=>{
+    speseMese.forEach((s, index)=>{
         const li = document.createElement('li');
-        li.innerHTML = `<strong>${s.data||new Date().toLocaleDateString()}</strong> – €${Number(s.importo).toFixed(2)} – <em>${s.categoria}</em> ${s.nota?'- '+s.nota:''}`;
+        li.innerHTML = `<strong>${new Date(s.data).toLocaleDateString()}</strong> – €${Number(s.importo).toFixed(2)} – <em>${s.categoria}</em> ${s.nota?'- '+s.nota:''} 
+        <button onclick="eliminaSpesa(${index})" style="background:#e74c3c;padding:2px 8px;font-size:10px;margin-left:10px;">X</button>`;
         lista.appendChild(li);
         totale += Number(s.importo);
     });
     totaleEl.textContent = `Totale mese: €${totale.toFixed(2)}`;
-    // abilita/disabilita pulsanti
-    document.getElementById('salvaBtn').disabled = spese.length===0 || Number(document.getElementById('importo').value)<=0 || document.getElementById('categoria').value==='';
-    document.getElementById('annullaBtn').disabled = spese.length===0 || document.getElementById('importo').value==='';
+    
+    // Aggiorna stato bottoni
+    const importoVal = Number(document.getElementById('importo').value);
+    document.getElementById('salvaBtn').disabled = importoVal <= 0 || document.getElementById('categoria').value === '';
 }
+
+function eliminaSpesa(index) {
+    if(!confirm("Eliminare questa spesa?")) return;
+    let spese = loadData();
+    spese.splice(index, 1);
+    saveData(spese);
+    render();
+    // Se il grafico è aperto, lo rinfresca
+    if (!document.getElementById('graficiContainer').classList.contains('hidden')) aggiornaGrafico();
+}
+
 render();
 
 /* ---------- Aggiungi / Annulla ---------- */
@@ -108,12 +129,11 @@ const salvaBtn = document.getElementById('salvaBtn');
 const annullaBtn = document.getElementById('annullaBtn');
 
 function aggiornaUI(){
-    salvaBtn.disabled = Number(importoInput.value)<=0 || categoriaInput.value==='';
-    annullaBtn.disabled = importoInput.value==='' || categoriaInput.value==='';
+    salvaBtn.disabled = Number(importoInput.value) <= 0 || categoriaInput.value === '';
+    annullaBtn.disabled = importoInput.value === '' && categoriaInput.value === '';
 }
 importoInput.addEventListener('input', aggiornaUI);
 categoriaInput.addEventListener('change', aggiornaUI);
-notaInput.addEventListener('input', aggiornaUI);
 
 salvaBtn.addEventListener('click',()=>{
     const nuova = {
@@ -123,77 +143,61 @@ salvaBtn.addEventListener('click',()=>{
         data: new Date().toISOString()
     };
     const spese = loadData();
-    spese.push(nuova);           // <-- CORRETTO (prima era spese.push(nova) ma con typo)
+    spese.push(nuova);
     saveData(spese);
-    // reset form
-    importoInput.value='';
-    categoriaInput.selectedIndex=0;
-    notaInput.value='';
+    importoInput.value=''; categoriaInput.selectedIndex=0; notaInput.value='';
     render();
-});
-
-annullaBtn.addEventListener('click',()=>{
-    if(confirm('Annullare l’inserimento?')){
-        importoInput.value='';
-        categoriaInput.selectedIndex=0;
-        notaInput.value='';
-        render();
-    }
+    if (!document.getElementById('graficiContainer').classList.contains('hidden')) aggiornaGrafico();
 });
 
 /* ---------- Grafici ---------- */
 let chartInstance = null;
-document.getElementById('graficiBtn').addEventListener('click',()=>{
-    const container = document.getElementById('graficiContainer');
-    container.classList.toggle('hidden');
-    if(container.classList.contains('hidden')) return;
-
+function aggiornaGrafico() {
     const spese = loadData();
-    const catTot = {};
-    spese.forEach(s=>{
-        const c = s.categoria;
-        catTot[c] = (catTot[c]||0) + Number(s.importo);
+    const ora = new Date();
+    const speseMese = spese.filter(s => {
+        const d = new Date(s.data);
+        return d.getMonth() === ora.getMonth() && d.getFullYear() === ora.getFullYear();
     });
-    const labels = Object.keys(catTot);
-    const dati = Object.values(catTot);
+
+    const catTot = {};
+    speseMese.forEach(s => {
+        catTot[s.categoria] = (catTot[s.categoria]||0) + Number(s.importo);
+    });
 
     const ctx = document.getElementById('graficoCategorie').getContext('2d');
     if(chartInstance) chartInstance.destroy();
-    chartInstance = new Chart(ctx,{
+    chartInstance = new Chart(ctx, {
         type:'pie',
-        data:{
-            labels,
-            datasets:[{
-                data,
+        data: {
+            labels: Object.keys(catTot),
+            datasets: [{
+                data: Object.values(catTot),
                 backgroundColor:['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6','#e67e22','#7f8c8d']
             }]
         },
-        options:{responsive:true,plugins:{legend:{position:'bottom'}}}
+        options:{responsive:true, plugins:{legend:{position:'bottom'}}}
     });
+}
+
+document.getElementById('graficiBtn').addEventListener('click',() => {
+    const container = document.getElementById('graficiContainer');
+    container.classList.toggle('hidden');
+    if(!container.classList.contains('hidden')) aggiornaGrafico();
 });
 
 /* ---------- Esporta CSV ---------- */
 document.getElementById('esportaBtn').addEventListener('click',()=>{
     const spese = loadData();
-    // Creazione di una riga CSV semplice (intestazione + dati)
     const header = ['Data','Categoria','Importo','Nota'];
-    const rows = spese.map(s=>[
-        new Date(s.data).toLocaleDateString(),
-        s.categoria,
-        s.importo,
-        s.nota
-    ]);
-    const csvContent = [header, ...rows]
-        .map(r=>r.map(v=>`"${v}"`).join(','))
-        .join('\n');
-
+    const rows = spese.map(s=>[new Date(s.data).toLocaleDateString(), s.categoria, s.importo, s.nota]);
+    const csvContent = [header, ...rows].map(r=>r.join(',')).join('\n');
     const blob = new Blob([csvContent],{type:'text/csv;charset=utf-8;'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = 'spese_' + new Date().toISOString().slice(0,10) + '.csv';
     a.click();
-    URL.revokeObjectURL(url);
 });
 </script>
 <script>
