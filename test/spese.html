@@ -29,7 +29,7 @@
     }
 </script>
     <div class="container">
-    <header>📊 SPESE – Giugno 2026</header>
+    <header id="headerMese">📊 SPESE – </header>
 
     <!-- ==== Form di inserimento ==== -->
     <div class="card">
@@ -37,12 +37,14 @@
         <input type="number" id="importo" placeholder="Importo (€)" step="0.01" min="0" required>
         <select id="categoria" required>
             <option value="">Seleziona categoria</option>
-            <option>Abbigliamento & Cura</option>
+            <option>Abbigliamento&Cura</option>
             <option>Spesa alimentare</option>
-            <option>Cibo fuori</option>
+            <option>Cibo&Bevande fuori</option>
             <option>Casa & Bollette</option>
             <option>Trasporti</option>
-            <option>Ospedali</option>
+            <option>TempoLibero&Hobby</option>
+            <option>Regali&Eventi speciali</option>
+            <option>Risparmi&Accantonamenti</option>
             <option>Altro</option>
         </select>
         <input type="text" id="nota" placeholder="Nota (es. iper/eurospin)">
@@ -193,6 +195,13 @@ document.getElementById('esportaBtn').addEventListener('click',()=>{
     a.click();
     URL.revokeObjectURL(url);
 });
+</script>
+<script>
+    // Aggiorna l'intestazione con mese e anno corrente
+    const nomiMesi = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", 
+                      "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
+    const ora = new Date();
+    document.getElementById('headerMese').textContent += `${nomiMesi[ora.getMonth()]} ${ora.getFullYear()}`;
 </script>
 </body>
 </html>
