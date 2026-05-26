@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Spese‑Flash – App ultra‑veloce</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="data:,">
+    <style>
+        body{font-family:Arial,sans-serif;margin:0;padding:0;background:#f5f5f5;color:#333}
+        .container{max-width:480px;margin:0 auto;padding:1rem}
+        header{background:#2c3e50;color:#fff;padding:.5rem 1rem;text-align:center;font-size:1.2rem}
+        .card{background:#fff;border-radius:8px;margin:.5rem 0;padding:.8rem;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+        button{background:#27ae60;color:#fff;border:none;border-radius:4px;padding:.5rem 1rem;margin:.2rem;cursor:pointer}
+        button:disabled{background:#95a5a6;cursor:not-allowed}
+        input,select{width:100%;padding:.4rem;margin:.2rem 0;border:1px solid #ccc;border-radius:4px}
+        ul{list-style:none;padding:0}
+        li{padding:.4rem 0;border-bottom:1px solid #eee}
+        .total{font-weight:bold;background:#e8f5e9;padding:.3rem}
+        .hidden{display:none}
+        .chart{max-width:100%;height:200px;margin-top:.5rem}
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>📊 SPESE – MARZO 2026</header>
+
+    <!-- ==== Form di inserimento ==== -->
+    <div class="card">
+        <h3>➕ Aggiungi spesa</h3>
+        <input type="number" id="importo" placeholder="Importo (€)" step="0.01" min="0" required>
+        <select id="categoria" required>
+            <option value="">Seleziona categoria</option>
+            <option>Abbigliamento & Cura</option>
+            <option>Spesa alimentare</option>
+            <option>Cibo fuori</option>
+            <option>Casa & Bollette</option>
+            <option>Trasporti</option>
+            <option>Ospedali</option>
+            <option>Altro</option>
+        </select>
+        <input type="text" id="nota" placeholder="Nota (es. iper/eurospin)">
+        <button id="salvaBtn" disabled>✅ Salva</button>
+        <button id="annullaBtn" disabled>❌ Annulla</button>
+    </div>
+
+    <!-- ==== Lista spese ==== -->
+    <div class="card">
+        <h3>📋 Lista spese</h3>
+        <ul id="listaSpese"></ul>
+        <p class="total" id="totaleMese">Totale mese: €0,00</p>
+    </div>
+
+    <!-- ==== Pulsanti extra ==== -->
+    <div class="card" style="display:flex;justify-content:space-between;">
+        <button id="graficiBtn">📊 Grafici</button>
+        <button id="esportaBtn">📥 Esporta</button>
+    </div>
+
+    <!-- ==== Grafici (Chart.js) ==== -->
+    <div class="card hidden" id="graficiContainer">
+        <h3>📈 Grafici</h3>
+        <canvas id="graficoCategorie" class="chart"></canvas>
+    </div>
+</div>
+
+<!-- Chart.js (CDN) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+/* ---------- Utility ---------- */
+const storageKey = 'speseFlash';
+function loadData(){ return JSON.parse(localStorage.getItem(storageKey)||'[]'); }
+function saveData(arr){ localStorage.setItem(storageKey, JSON.stringify(arr)); }
+
+/* ---------- Rendering ---------- */
+const lista = document.getElementById('listaSpese');
+const totaleEl = document.getElementById('totaleMese');
+function render(){
+    const spese = loadData();
+    lista.innerHTML = '';
+    let totale = 0;
+    spese.forEach(s=>{
+        const li = document.createElement('li');
+        li.innerHTML = `<strong>${s.data||new Date().toLocaleDateString()}</strong> – €${Number(s.importo).toFixed(2)} – <em>${s.categoria}</em> ${s.nota?'- '+s.nota:''}`;
+        lista.appendChild(li);
+        totale += Number(s.importo);
+    });
+    totaleEl.textContent = `Totale mese: €${totale.toFixed(2)}`;
+    // abilita/disabilita pulsanti
+    document.getElementById('salvaBtn').disabled = spese.length===0 || Number(document.getElementById('importo').value)<=0 || document.getElementById('categoria').value==='';
+    document.getElementById('annullaBtn').disabled = spese.length===0 || document.getElementById('importo').value==='';
+}
+render();
+
+/* ---------- Aggiungi / Annulla ---------- */
+const importoInput = document.getElementById('importo');
+const categoriaInput = document.getElementById('categoria');
+const notaInput = document.getElementById('nota');
+const salvaBtn = document.getElementById('salvaBtn');
+const annullaBtn = document.getElementById('annullaBtn');
+
+function aggiornaUI(){
+    salvaBtn.disabled = Number(importoInput.value)<=0 || categoriaInput.value==='';
+    annullaBtn.disabled = importoInput.value==='' || categoriaInput.value==='';
+}
+importoInput.addEventListener('input', aggiornaUI);
+categoriaInput.addEventListener('change', aggiornaUI);
+notaInput.addEventListener('input', aggiornaUI);
+
+salvaBtn.addEventListener('click',()=>{
+    const nuova = {
+        importo: Number(importoInput.value),
+        categoria: categoriaInput.value,
+        nota: notaInput.value.trim(),
+        data: new Date().toISOString()
+    };
+    const spese = loadData();
+    spese.push(nuova);           // <-- CORRETTO (prima era spese.push(nova) ma con typo)
+    saveData(spese);
+    // reset form
+    importoInput.value='';
+    categoriaInput.selectedIndex=0;
+    notaInput.value='';
+    render();
+});
+
+annullaBtn.addEventListener('click',()=>{
+    if(confirm('Annullare l’inserimento?')){
+        importoInput.value='';
+        categoriaInput.selectedIndex=0;
+        notaInput.value='';
+        render();
+    }
+});
+
+/* ---------- Grafici ---------- */
+let chartInstance = null;
+document.getElementById('graficiBtn').addEventListener('click',()=>{
+    const container = document.getElementById('graficiContainer');
+    container.classList.toggle('hidden');
+    if(container.classList.contains('hidden')) return;
+
+    const spese = loadData();
+    const catTot = {};
+    spese.forEach(s=>{
+        const c = s.categoria;
+        catTot[c] = (catTot[c]||0) + Number(s.importo);
+    });
+    const labels = Object.keys(catTot);
+    const dati = Object.values(catTot);
+
+    const ctx = document.getElementById('graficoCategorie').getContext('2d');
+    if(chartInstance) chartInstance.destroy();
+    chartInstance = new Chart(ctx,{
+        type:'pie',
+        data:{
+            labels,
+            datasets:[{
+                data,
+                backgroundColor:['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6','#e67e22','#7f8c8d']
+            }]
+        },
+        options:{responsive:true,plugins:{legend:{position:'bottom'}}}
+    });
+});
+
+/* ---------- Esporta CSV ---------- */
+document.getElementById('esportaBtn').addEventListener('click',()=>{
+    const spese = loadData();
+    // Creazione di una riga CSV semplice (intestazione + dati)
+    const header = ['Data','Categoria','Importo','Nota'];
+    const rows = spese.map(s=>[
+        new Date(s.data).toLocaleDateString(),
+        s.categoria,
+        s.importo,
+        s.nota
+    ]);
+    const csvContent = [header, ...rows]
+        .map(r=>r.map(v=>`"${v}"`).join(','))
+        .join('\n');
+
+    const blob = new Blob([csvContent],{type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'spese_' + new Date().toISOString().slice(0,10) + '.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+});
+</script>
+</body>
+</html>
