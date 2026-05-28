@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Spese-Flash</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="data:,">
+    <style>
+        body{font-family:Arial,sans-serif;margin:0;padding:0;background:#f5f5f5;color:#333}
+        .container{max-width:480px;margin:0 auto;padding:1rem}
+        header{background:#2c3e50;color:#fff;padding:.5rem 1rem;text-align:center;font-size:1.2rem; display:flex; justify-content:space-between; align-items:center; border-radius:8px;}
+        .card{background:#fff;border-radius:8px;margin:.5rem 0;padding:.8rem;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+        button{background:#27ae60;color:#fff;border:none;border-radius:4px;padding:.5rem 1rem;margin:.2rem;cursor:pointer}
+        button:disabled{background:#95a5a6;cursor:not-allowed}
+        input,select{width:100%;padding:.4rem;margin:.2rem 0;border:1px solid #ccc;border-radius:4px}
+        ul{list-style:none;padding:0}
+        li{padding:.5rem 0;border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;}
+        .total{font-weight:bold;background:#e8f5e9;padding:.5rem; margin-top:10px;}
+        .hidden{display:none}
+        .chart{max-width:100%;height:200px;margin-top:.5rem}
+    </style>
+</head>
+<body>
+<script>
+    const password = "2402"; 
+    const inserita = prompt("Inserisci la password:");
+    if (inserita !== password) {
+        document.body.innerHTML = "<h1>Accesso negato</h1>";
+        throw new Error("Accesso negato");
+    }
+</script>
+
+<div class="container">
+    <header>
+        <button onclick="cambiaMese(-1)" style="background:transparent; color:white; border:none; font-size:1.5rem;">⬅️</button>
+        <span id="headerMese"></span>
+        <button onclick="cambiaMese(1)" style="background:transparent; color:white; border:none; font-size:1.5rem;">➡️</button>
+    </header>
+
+    <div class="card">
+        <h3>➕ Aggiungi spesa</h3>
+        <input type="number" id="importo" placeholder="Importo (€)" step="0.01" min="0" required>
+        <select id="categoria" required>
+            <option value="">Seleziona categoria</option>
+            <option>Abbigliamento&Cura</option>
+            <option>Spesa alimentare</option>
+            <option>Cibo&Bevande fuori</option>
+            <option>Casa & Bollette</option>
+            <option>Trasporti</option>
+            <option>TempoLibero&Hobby</option>
+            <option>Regali&Eventi</option>
+            <option>Risparmi</option>
+            <option>Altro</option>
+        </select>
+        <input type="text" id="nota" placeholder="Nota (es. iper/eurospin)">
+        <button id="salvaBtn" disabled>✅ Salva</button>
+    </div>
+
+    <div class="card">
+        <h3>📋 Lista spese</h3>
+        <ul id="listaSpese"></ul>
+        <p class="total" id="totaleMese">Totale mese: €0,00</p>
+    </div>
+
+    <div class="card" style="display:flex;justify-content:space-between;">
+        <button id="graficiBtn">📊 Grafici</button>
+        <button id="esportaBtn">📥 Esporta</button>
+    </div>
+
+    <div class="card hidden" id="graficiContainer">
+        <h3>📈 Grafici</h3>
+        <canvas id="graficoCategorie" class="chart"></canvas>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const storageKey = 'speseFlash';
+let dataVisualizzata = new Date(); 
+
+function loadData(){ return JSON.parse(localStorage.getItem(storageKey)||'[]'); }
+function saveData(arr){ localStorage.setItem(storageKey, JSON.stringify(arr)); }
+
+function aggiornaHeader() {
+    const nomiMesi = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
+    document.getElementById('headerMese').textContent = `${nomiMesi[dataVisualizzata.getMonth()]} ${dataVisualizzata.getFullYear()}`;
+}
+
+function cambiaMese(direzione) {
+    dataVisualizzata.setMonth(dataVisualizzata.getMonth() + direzione);
+    aggiornaHeader();
+    render();
+    if (!document.getElementById('graficiContainer').classList.contains('hidden')) aggiornaGrafico();
+}
+
+function render(){
+    const spese = loadData();
+    const speseMese = spese.filter(s => {
+        const d = new Date(s.data);
+        return d.getMonth() === dataVisualizzata.getMonth() && d.getFullYear() === dataVisualizzata.getFullYear();
+    });
+
+    const lista = document.getElementById('listaSpese');
+    lista.innerHTML = '';
+    let totale = 0;
+    
+    speseMese.forEach((s, index)=>{
+        const li = document.createElement('li');
+        li.innerHTML = `<span><strong>${new Date(s.data).getDate()}</strong>: €${Number(s.importo).toFixed(2)} - <em>${s.categoria}</em> ${s.nota?'- '+s.nota:''}</span>
+                        <button onclick="eliminaSpesa(${index})" style="background:#e74c3c;padding:2px 8px;font-size:12px;">X</button>`;
+        lista.appendChild(li);
+        totale += Number(s.importo);
+    });
+    document.getElementById('totaleMese').textContent = `Totale mese: €${totale.toFixed(2)}`;
+}
+
+function eliminaSpesa(index) {
+    if(!confirm("Eliminare questa spesa?")) return;
+    let spese = loadData();
+    // Trova l'indice reale nell'array totale (non quello filtrato)
+    const spesaDaEliminare = renderDateFiltered(spese)[index];
+    const realIndex = spese.indexOf(spesaDaEliminare);
+    spese.splice(realIndex, 1);
+    saveData(spese);
+    render();
+    if (!document.getElementById('graficiContainer').classList.contains('hidden')) aggiornaGrafico();
+}
+
+function renderDateFiltered(spese) {
+    return spese.filter(s => {
+        const d = new Date(s.data);
+        return d.getMonth() === dataVisualizzata.getMonth() && d.getFullYear() === dataVisualizzata.getFullYear();
+    });
+}
+
+const importoInput = document.getElementById('importo');
+const categoriaInput = document.getElementById('categoria');
+const salvaBtn = document.getElementById('salvaBtn');
+
+function aggiornaUI(){
+    salvaBtn.disabled = Number(importoInput.value) <= 0 || categoriaInput.value === '';
+}
+importoInput.addEventListener('input', aggiornaUI);
+categoriaInput.addEventListener('change', aggiornaUI);
+
+salvaBtn.addEventListener('click',()=>{
+    const nuova = {
+        importo: Number(importoInput.value),
+        categoria: categoriaInput.value,
+        nota: document.getElementById('nota').value.trim(),
+        data: new Date().toISOString()
+    };
+    const spese = loadData();
+    spese.push(nuova);
+    saveData(spese);
+    importoInput.value=''; categoriaInput.selectedIndex=0; document.getElementById('nota').value='';
+    render();
+    if (!document.getElementById('graficiContainer').classList.contains('hidden')) aggiornaGrafico();
+});
+
+let chartInstance = null;
+function aggiornaGrafico() {
+    const spese = loadData();
+    const speseMese = renderDateFiltered(spese);
+    const catTot = {};
+    speseMese.forEach(s => { catTot[s.categoria] = (catTot[s.categoria]||0) + Number(s.importo); });
+
+    const ctx = document.getElementById('graficoCategorie').getContext('2d');
+    if(chartInstance) chartInstance.destroy();
+    chartInstance = new Chart(ctx, {
+        type:'pie',
+        data: { labels: Object.keys(catTot), datasets: [{ data: Object.values(catTot), backgroundColor:['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6','#e67e22','#7f8c8d'] }] },
+        options:{responsive:true, plugins:{legend:{position:'bottom'}}}
+    });
+}
+
+document.getElementById('graficiBtn').addEventListener('click',() => {
+    const container = document.getElementById('graficiContainer');
+    container.classList.toggle('hidden');
+    if(!container.classList.contains('hidden')) aggiornaGrafico();
+});
+
+document.getElementById('esportaBtn').addEventListener('click',()=>{
+    const spese = loadData();
+    const header = ['Data','Categoria','Importo','Nota'];
+    const rows = spese.map(s=>[new Date(s.data).toLocaleDateString(), s.categoria, s.importo, s.nota]);
+    const csvContent = [header, ...rows].map(r=>r.join(',')).join('\n');
+    const blob = new Blob([csvContent],{type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'archivio_spese.csv';
+    a.click();
+});
+
+aggiornaHeader();
+render();
+</script>
+</body>
+</html>
