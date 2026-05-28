@@ -40,6 +40,7 @@
     <div class="card">
         <h3>➕ Aggiungi spesa</h3>
         <input type="number" id="importo" placeholder="Importo (€)" step="0.01" min="0" required>
+        <input type="date" id="dataSpesa" required>
         <select id="categoria" required>
             <option value="">Seleziona categoria</option>
             <option>Abbigliamento&Cura</option>
@@ -78,6 +79,9 @@
 const storageKey = 'speseFlash';
 let dataVisualizzata = new Date(); 
 
+// Imposta data odierna di default
+document.getElementById('dataSpesa').valueAsDate = new Date();
+
 function loadData(){ return JSON.parse(localStorage.getItem(storageKey)||'[]'); }
 function saveData(arr){ localStorage.setItem(storageKey, JSON.stringify(arr)); }
 
@@ -93,13 +97,16 @@ function cambiaMese(direzione) {
     if (!document.getElementById('graficiContainer').classList.contains('hidden')) aggiornaGrafico();
 }
 
-function render(){
-    const spese = loadData();
-    const speseMese = spese.filter(s => {
+function renderDateFiltered(spese) {
+    return spese.filter(s => {
         const d = new Date(s.data);
         return d.getMonth() === dataVisualizzata.getMonth() && d.getFullYear() === dataVisualizzata.getFullYear();
     });
+}
 
+function render(){
+    const spese = loadData();
+    const speseMese = renderDateFiltered(spese);
     const lista = document.getElementById('listaSpese');
     lista.innerHTML = '';
     let totale = 0;
@@ -117,8 +124,8 @@ function render(){
 function eliminaSpesa(index) {
     if(!confirm("Eliminare questa spesa?")) return;
     let spese = loadData();
-    // Trova l'indice reale nell'array totale (non quello filtrato)
-    const spesaDaEliminare = renderDateFiltered(spese)[index];
+    const speseFiltrate = renderDateFiltered(spese);
+    const spesaDaEliminare = speseFiltrate[index];
     const realIndex = spese.indexOf(spesaDaEliminare);
     spese.splice(realIndex, 1);
     saveData(spese);
@@ -126,29 +133,24 @@ function eliminaSpesa(index) {
     if (!document.getElementById('graficiContainer').classList.contains('hidden')) aggiornaGrafico();
 }
 
-function renderDateFiltered(spese) {
-    return spese.filter(s => {
-        const d = new Date(s.data);
-        return d.getMonth() === dataVisualizzata.getMonth() && d.getFullYear() === dataVisualizzata.getFullYear();
-    });
-}
-
 const importoInput = document.getElementById('importo');
 const categoriaInput = document.getElementById('categoria');
+const dataInput = document.getElementById('dataSpesa');
 const salvaBtn = document.getElementById('salvaBtn');
 
 function aggiornaUI(){
-    salvaBtn.disabled = Number(importoInput.value) <= 0 || categoriaInput.value === '';
+    salvaBtn.disabled = Number(importoInput.value) <= 0 || categoriaInput.value === '' || dataInput.value === '';
 }
 importoInput.addEventListener('input', aggiornaUI);
 categoriaInput.addEventListener('change', aggiornaUI);
+dataInput.addEventListener('input', aggiornaUI);
 
 salvaBtn.addEventListener('click',()=>{
     const nuova = {
         importo: Number(importoInput.value),
         categoria: categoriaInput.value,
         nota: document.getElementById('nota').value.trim(),
-        data: new Date().toISOString()
+        data: new Date(dataInput.value + 'T12:00:00').toISOString()
     };
     const spese = loadData();
     spese.push(nuova);
