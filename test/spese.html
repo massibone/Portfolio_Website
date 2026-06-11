@@ -2,14 +2,16 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Serie TV Tracker Pro</title>
+    <title>Media Tracker Pro</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         body { font-family: sans-serif; background: #f0f2f5; padding: 10px; }
         .card { background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 10px; }
         .item { padding: 12px; border-bottom: 1px solid #eee; }
-        .controls { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
-        button { padding: 5px 8px; cursor: pointer; border: 1px solid #ccc; border-radius: 4px; background: #fff; }
+        .controls { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
+        button { padding: 6px 10px; cursor: pointer; border: 1px solid #ccc; border-radius: 4px; background: #fff; font-size: 14px; }
+        .btn-main { background: #27ae60; color: white; border: none; }
+        .btn-del { color: red; border-color: red; }
     </style>
 </head>
 <body>
@@ -21,7 +23,7 @@
         <option value="In_corso">In corso</option>
         <option value="Visto">Visto</option>
     </select>
-    <button onclick="aggiungiMedia()" style="background:#27ae60; color:white;">Aggiungi</button>
+    <button class="btn-main" onclick="aggiungiMedia()">Aggiungi</button>
 </div>
 
 <div class="card">
@@ -45,23 +47,6 @@
         t.value = '';
     }
 
-    function modNumero(i) {
-        const s = prompt("Stagione:", mediaList[i].s);
-        const e = prompt("Episodio:", mediaList[i].e);
-        if (s !== null && e !== null) {
-            mediaList[i].s = parseInt(s);
-            mediaList[i].e = parseInt(e);
-            salvaEAggiorna();
-        }
-    }
-
-    function segnaFinita(i) {
-        if(confirm("Segnare la serie come finita/vista?")) {
-            mediaList[i].stato = 'Visto';
-            salvaEAggiorna();
-        }
-    }
-
     function aggiornaProgresso(i, tipo, delta) {
         if(tipo === 's') mediaList[i].s = Math.max(1, (mediaList[i].s || 1) + delta);
         if(tipo === 'e') mediaList[i].e = Math.max(0, (mediaList[i].e || 0) + delta);
@@ -77,20 +62,37 @@
             if (filtro !== 'Tutti' && m.stato !== filtro) return;
             cont.innerHTML += `
             <div class="item">
-                <div style="display:flex; justify-content:space-between;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
                     <strong>${m.nome}</strong>
-                    <button onclick="rinomina(${i})">✏️</button>
+                    <button onclick="rinomina(${i})">✏️ Nome</button>
                 </div>
                 <div class="controls">
-                    <span>S${m.s || 1} E${m.e || 0}</span>
+                    <span style="font-weight:bold; min-width:60px;">S${m.s || 1} E${m.e || 0}</span>
                     <button onclick="aggiornaProgresso(${i}, 's', 1)">S+</button>
                     <button onclick="aggiornaProgresso(${i}, 'e', 1)">E+</button>
                     <button onclick="modNumero(${i})">✏️ Num</button>
                     <button onclick="segnaFinita(${i})">✅</button>
-                    <button onclick="elimina(${i})" style="color:red">X</button>
+                    <button class="btn-del" onclick="elimina(${i})">X</button>
                 </div>
             </div>`;
         });
+    }
+
+    function modNumero(i) {
+        const s = prompt("Stagione:", mediaList[i].s);
+        const e = prompt("Episodio:", mediaList[i].e);
+        if (s !== null && e !== null) {
+            mediaList[i].s = parseInt(s);
+            mediaList[i].e = parseInt(e);
+            salvaEAggiorna();
+        }
+    }
+
+    function segnaFinita(i) {
+        if(confirm("Segnare come vista/finita?")) {
+            mediaList[i].stato = 'Visto';
+            salvaEAggiorna();
+        }
     }
 
     function rinomina(i) {
