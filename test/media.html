@@ -2,14 +2,14 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Serie TV Tracker Pro</title>
+    <title>Media Tracker</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         body { font-family: sans-serif; background: #f0f2f5; padding: 10px; }
         .card { background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 10px; }
-        .item { display: flex; flex-direction: column; padding: 10px; border-bottom: 1px solid #ddd; }
-        .controls { display: flex; align-items: center; justify-content: space-between; margin-top: 5px; }
-        button { padding: 5px 10px; cursor: pointer; }
+        .item { padding: 10px; border-bottom: 1px solid #ddd; }
+        .controls { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+        .btn-small { padding: 2px 6px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -19,8 +19,8 @@
     <input type="text" id="titolo" placeholder="Nome Serie/Film">
     <select id="stato">
         <option value="Da_vedere">Da vedere</option>
-        <option value="Visto">Visto</option>
         <option value="In_corso">In corso</option>
+        <option value="Visto">Visto</option>
     </select>
     <button onclick="aggiungiMedia()">Aggiungi</button>
 </div>
@@ -40,17 +40,25 @@
 
     function aggiungiMedia() {
         const t = document.getElementById('titolo');
-        const s = document.getElementById('stato');
-        // Aggiungiamo S1 E0 come base
-        mediaList.unshift({ nome: t.value, stato: s.value, s: 1, e: 0, ts: Date.now() });
+        if(!t.value) return;
+        mediaList.unshift({ 
+            nome: t.value, 
+            stato: document.getElementById('stato').value, 
+            s: 1, e: 0, ts: Date.now() 
+        });
         salvaEAggiorna();
         t.value = '';
     }
 
+    function rinomina(index) {
+        const nuovoNome = prompt("Modifica nome:", mediaList[index].nome);
+        if (nuovoNome) { mediaList[index].nome = nuovoNome; salvaEAggiorna(); }
+    }
+
     function aggiornaProgresso(index, tipo, delta) {
-        if(tipo === 's') mediaList[index].s = Math.max(1, mediaList[index].s + delta);
-        if(tipo === 'e') mediaList[index].e = Math.max(0, mediaList[index].e + delta);
-        mediaList[index].ts = Date.now(); // Aggiorna timestamp per ordinamento
+        if(tipo === 's') mediaList[index].s = Math.max(1, (mediaList[index].s || 1) + delta);
+        if(tipo === 'e') mediaList[index].e = Math.max(0, (mediaList[index].e || 0) + delta);
+        mediaList[index].ts = Date.now();
         salvaEAggiorna();
     }
 
@@ -59,20 +67,23 @@
         const cont = document.getElementById('listaMedia');
         cont.innerHTML = '';
         
-        // Ordina per ultimo aggiornato (timestamp)
-        const listaOrdinata = mediaList.sort((a,b) => b.ts - a.ts);
+        mediaList.sort((a,b) => b.ts - a.ts).forEach((m, originalIndex) => {
+            // Logica filtro
+            if (filtro !== 'Tutti' && m.stato !== filtro) return;
 
-        listaOrdinata.filter(m => filtro === 'Tutti' || m.stato === filtro).forEach((m, i) => {
             const index = mediaList.indexOf(m);
             cont.innerHTML += `
             <div class="item">
-                <strong>${m.nome}</strong>
+                <div style="display:flex; justify-content:space-between;">
+                    <strong>${m.nome}</strong>
+                    <button class="btn-small" onclick="rinomina(${index})">✏️</button>
+                </div>
                 <div class="controls">
-                    <span>S${m.s} E${m.e}</span>
+                    <span>S${m.s || 1} E${m.e || 0}</span>
                     <div>
-                        <button onclick="aggiornaProgresso(${index}, 's', 1)">S+</button>
-                        <button onclick="aggiornaProgresso(${index}, 'e', 1)">E+</button>
-                        <button onclick="elimina(${index})">X</button>
+                        <button class="btn-small" onclick="aggiornaProgresso(${index}, 's', 1)">S+</button>
+                        <button class="btn-small" onclick="aggiornaProgresso(${index}, 'e', 1)">E+</button>
+                        <button class="btn-small" onclick="elimina(${index})">X</button>
                     </div>
                 </div>
             </div>`;
