@@ -15,11 +15,12 @@
 <body>
 
 <div class="card">
-    <input type="text" id="titolo" placeholder="Nome Serie..." style="width:100%; padding:10px; box-sizing:border-box;">
+    <input type="text" id="titolo" placeholder="Nuova serie..." style="width:100%; padding:10px; box-sizing:border-box;">
     <button onclick="aggiungi()" style="width:100%; margin-top:5px; background:#27ae60; color:white; border:none; padding:10px;">Aggiungi</button>
 </div>
 
 <div class="card">
+    <input type="text" id="ricerca" placeholder="Cerca (min 3 lettere)..." oninput="render()" style="width:100%; padding:10px; box-sizing:border-box; margin-bottom:10px;">
     <select id="filtro" onchange="render()" style="width:100%; padding:10px;">
         <option value="Tutti">Mostra tutto</option>
         <option value="In_corso">In corso</option>
@@ -36,49 +37,63 @@
         let t = document.getElementById('titolo');
         if(!t.value) return;
         list.push({nome: t.value, s: 1, e: 0, stato: 'In_corso'});
-        localStorage.setItem('myMedia', JSON.stringify(list));
-        render();
-        t.value = '';
+        salva(); render(); t.value = '';
     }
 
     function render() {
         let div = document.getElementById('lista');
         let filtro = document.getElementById('filtro').value;
+        let testo = document.getElementById('ricerca').value.toLowerCase();
         div.innerHTML = '';
         
         list.forEach((item, i) => {
+            // Filtri: Stato + Ricerca (min 3 caratteri)
             if(filtro !== 'Tutti' && item.stato !== filtro) return;
+            if(testo.length >= 3 && !item.nome.toLowerCase().includes(testo)) return;
+            
+            let btnStato = item.stato === 'In_corso' ? '✅' : '🔄';
             
             div.innerHTML += `
             <div class="item">
-                <strong>${item.nome} (S${item.s || 1} E${item.e || 0})</strong>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <strong>${item.nome} (S${item.s} E${item.e})</strong>
+                    <button onclick="editTitolo(${i})">✏️</button>
+                </div>
                 <div class="controls">
                     <button onclick="up(${i}, 's', 1)">S+</button>
                     <button onclick="up(${i}, 'e', 1)">E+</button>
                     <button onclick="mod(${i})">Num</button>
-                    <button onclick="finita(${i})">✅</button>
+                    <button onclick="toggleStato(${i})">${btnStato}</button>
                     <button onclick="del(${i})" style="color:red;">X</button>
                 </div>
             </div>`;
         });
     }
 
+    function editTitolo(i) {
+        let n = prompt("Nuovo titolo:", list[i].nome);
+        if(n) { list[i].nome = n; salva(); render(); }
+    }
+
+    function toggleStato(i) {
+        list[i].stato = (list[i].stato === 'In_corso' ? 'Visto' : 'In_corso');
+        salva(); render();
+    }
+
     function up(i, t, d) {
         if(t=='s') list[i].s = (list[i].s || 1) + d;
         if(t=='e') list[i].e = (list[i].e || 0) + d;
-        localStorage.setItem('myMedia', JSON.stringify(list));
-        render();
+        salva(); render();
     }
 
     function mod(i) {
         let s = prompt("Stagione:", list[i].s);
         let e = prompt("Episodio:", list[i].e);
-        if(s && e) { list[i].s = parseInt(s); list[i].e = parseInt(e); localStorage.setItem('myMedia', JSON.stringify(list)); render(); }
+        if(s && e) { list[i].s = parseInt(s); list[i].e = parseInt(e); salva(); render(); }
     }
 
-    function finita(i) { list[i].stato = 'Visto'; localStorage.setItem('myMedia', JSON.stringify(list)); render(); }
-
-    function del(i) { list.splice(i, 1); localStorage.setItem('myMedia', JSON.stringify(list)); render(); }
+    function salva() { localStorage.setItem('myMedia', JSON.stringify(list)); }
+    function del(i) { list.splice(i, 1); salva(); render(); }
 
     render();
 </script>
