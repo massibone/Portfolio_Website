@@ -2,100 +2,63 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Media Tracker</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; padding: 10px; }
-        .card { background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 10px; }
-        .item { padding: 10px; border-bottom: 1px solid #ddd; }
-        .controls { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
-        .btn-small { padding: 2px 6px; cursor: pointer; }
+        body { font-family: sans-serif; padding: 10px; background: #f4f4f4; }
+        .item { background: white; padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid #27ae60; }
+        .buttons { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+        button { padding: 10px; border: 1px solid #ccc; background: #fff; cursor: pointer; border-radius: 4px; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h3>➕ Aggiungi</h3>
-    <input type="text" id="titolo" placeholder="Nome Serie/Film">
-    <select id="stato">
-        <option value="Da_vedere">Da vedere</option>
-        <option value="In_corso">In corso</option>
-        <option value="Visto">Visto</option>
-    </select>
-    <button onclick="aggiungiMedia()">Aggiungi</button>
-</div>
-
-<div class="card">
-    <select id="filtroStato" onchange="render()">
-        <option value="Tutti">Mostra tutto</option>
-        <option value="Da_vedere">Da vedere</option>
-        <option value="In_corso">In corso</option>
-        <option value="Visto">Visto</option>
-    </select>
-    <div id="listaMedia"></div>
+<div id="app">
+    <input type="text" id="titolo" placeholder="Nuovo titolo" style="width:100%; padding:10px; box-sizing:border-box;">
+    <button onclick="aggiungi()" style="width:100%; margin-top:5px; background:#27ae60; color:white;">Aggiungi</button>
+    <div id="lista" style="margin-top:20px;"></div>
 </div>
 
 <script>
-    let mediaList = JSON.parse(localStorage.getItem('myMedia') || '[]');
+    let list = JSON.parse(localStorage.getItem('myMedia') || '[]');
 
-    function aggiungiMedia() {
-        const t = document.getElementById('titolo');
+    function aggiungi() {
+        let t = document.getElementById('titolo');
         if(!t.value) return;
-        mediaList.unshift({ 
-            nome: t.value, 
-            stato: document.getElementById('stato').value, 
-            s: 1, e: 0, ts: Date.now() 
-        });
-        salvaEAggiorna();
+        list.push({n: t.value, s: 1, e: 0});
+        localStorage.setItem('myMedia', JSON.stringify(list));
+        render();
         t.value = '';
     }
 
-    function rinomina(index) {
-        const nuovoNome = prompt("Modifica nome:", mediaList[index].nome);
-        if (nuovoNome) { mediaList[index].nome = nuovoNome; salvaEAggiorna(); }
-    }
-
-    function aggiornaProgresso(index, tipo, delta) {
-        if(tipo === 's') mediaList[index].s = Math.max(1, (mediaList[index].s || 1) + delta);
-        if(tipo === 'e') mediaList[index].e = Math.max(0, (mediaList[index].e || 0) + delta);
-        mediaList[index].ts = Date.now();
-        salvaEAggiorna();
-    }
-
     function render() {
-        const filtro = document.getElementById('filtroStato').value;
-        const cont = document.getElementById('listaMedia');
-        cont.innerHTML = '';
-        
-        mediaList.sort((a,b) => b.ts - a.ts).forEach((m, originalIndex) => {
-            // Logica filtro
-            if (filtro !== 'Tutti' && m.stato !== filtro) return;
-
-            const index = mediaList.indexOf(m);
-            cont.innerHTML += `
+        let div = document.getElementById('lista');
+        div.innerHTML = '';
+        list.forEach((item, i) => {
+            div.innerHTML += `
             <div class="item">
-                <div style="display:flex; justify-content:space-between;">
-                    <strong>${m.nome}</strong>
-                    <button class="btn-small" onclick="rinomina(${index})">✏️</button>
-                </div>
-                <div class="controls">
-                    <span>S${m.s || 1} E${m.e || 0}</span>
-                    <div>
-                        <button class="btn-small" onclick="aggiornaProgresso(${index}, 's', 1)">S+</button>
-                        <button class="btn-small" onclick="aggiornaProgresso(${index}, 'e', 1)">E+</button>
-                        <button class="btn-small" onclick="elimina(${index})">X</button>
-                    </div>
+                <strong>${item.n} (S${item.s} E${item.e})</strong>
+                <div class="buttons">
+                    <button onclick="update(${i}, 's', 1)">S+</button>
+                    <button onclick="update(${i}, 'e', 1)">E+</button>
+                    <button onclick="del(${i})" style="color:red;">X</button>
                 </div>
             </div>`;
         });
     }
 
-    function salvaEAggiorna() {
-        localStorage.setItem('myMedia', JSON.stringify(mediaList));
+    function update(i, t, d) {
+        if(t=='s') list[i].s += d;
+        if(t=='e') list[i].e += d;
+        localStorage.setItem('myMedia', JSON.stringify(list));
         render();
     }
 
-    function elimina(i) { if(confirm("Eliminare?")) { mediaList.splice(i, 1); salvaEAggiorna(); } }
+    function del(i) {
+        list.splice(i, 1);
+        localStorage.setItem('myMedia', JSON.stringify(list));
+        render();
+    }
 
     render();
 </script>
