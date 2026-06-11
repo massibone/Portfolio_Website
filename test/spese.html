@@ -3,31 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <title>Media Tracker Pro</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; padding: 10px; }
-        .card { background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 10px; }
-        .item { padding: 12px; border-bottom: 1px solid #eee; }
-        .controls { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
-        button { padding: 6px 10px; cursor: pointer; border: 1px solid #ccc; border-radius: 4px; background: #fff; font-size: 14px; }
-        .btn-main { background: #27ae60; color: white; border: none; }
-        .btn-del { color: red; border-color: red; }
+        body { font-family: sans-serif; background: #f0f2f5; padding: 10px; margin: 0; }
+        .card { background: #fff; padding: 12px; border-radius: 8px; margin-bottom: 10px; }
+        .item { padding: 12px; border-bottom: 2px solid #eee; }
+        /* Layout griglia per i bottoni per garantire che appaiano sempre */
+        .controls { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-top: 10px; }
+        button { padding: 8px 2px; cursor: pointer; border: 1px solid #ccc; border-radius: 4px; background: #fff; font-size: 13px; }
+        .btn-main { background: #27ae60; color: white; border: none; font-size: 16px; }
+        .btn-del { color: white; background: #e74c3c; border: none; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <input type="text" id="titolo" placeholder="Nome Serie/Film">
-    <select id="stato">
+    <input type="text" id="titolo" placeholder="Nome Serie/Film" style="width:100%; padding:8px; box-sizing:border-box;">
+    <select id="stato" style="width:100%; padding:8px; margin:5px 0;">
         <option value="Da_vedere">Da vedere</option>
         <option value="In_corso">In corso</option>
         <option value="Visto">Visto</option>
     </select>
-    <button class="btn-main" onclick="aggiungiMedia()">Aggiungi</button>
+    <button class="btn-main" onclick="aggiungiMedia()" style="width:100%;">Aggiungi</button>
 </div>
 
 <div class="card">
-    <select id="filtroStato" onchange="render()">
+    <select id="filtroStato" onchange="render()" style="width:100%; padding:8px;">
         <option value="Tutti">Mostra tutto</option>
         <option value="Da_vedere">Da vedere</option>
         <option value="In_corso">In corso</option>
@@ -62,15 +63,14 @@
             if (filtro !== 'Tutti' && m.stato !== filtro) return;
             cont.innerHTML += `
             <div class="item">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <strong>${m.nome}</strong>
-                    <button onclick="rinomina(${i})">✏️ Nome</button>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                    <strong style="font-size:16px;">${m.nome} (S${m.s||1} E${m.e||0})</strong>
+                    <button onclick="rinomina(${i})" style="padding:4px 8px;">✏️</button>
                 </div>
                 <div class="controls">
-                    <span style="font-weight:bold; min-width:60px;">S${m.s || 1} E${m.e || 0}</span>
                     <button onclick="aggiornaProgresso(${i}, 's', 1)">S+</button>
                     <button onclick="aggiornaProgresso(${i}, 'e', 1)">E+</button>
-                    <button onclick="modNumero(${i})">✏️ Num</button>
+                    <button onclick="modNumero(${i})">Num</button>
                     <button onclick="segnaFinita(${i})">✅</button>
                     <button class="btn-del" onclick="elimina(${i})">X</button>
                 </div>
