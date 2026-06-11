@@ -2,210 +2,110 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Spese‑Flash – App ultra‑veloce</title>
+    <title>Serie TV Tracker Pro</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" href="data:,">
     <style>
-        body{font-family:Arial,sans-serif;margin:0;padding:0;background:#f5f5f5;color:#333}
-        .container{max-width:480px;margin:0 auto;padding:1rem}
-        header{background:#2c3e50;color:#fff;padding:.5rem 1rem;text-align:center;font-size:1.2rem}
-        .card{background:#fff;border-radius:8px;margin:.5rem 0;padding:.8rem;box-shadow:0 2px 4px rgba(0,0,0,.1)}
-        button{background:#27ae60;color:#fff;border:none;border-radius:4px;padding:.5rem 1rem;margin:.2rem;cursor:pointer}
-        button:disabled{background:#95a5a6;cursor:not-allowed}
-        input,select{width:100%;padding:.4rem;margin:.2rem 0;border:1px solid #ccc;border-radius:4px}
-        ul{list-style:none;padding:0}
-        li{padding:.4rem 0;border-bottom:1px solid #eee}
-        .total{font-weight:bold;background:#e8f5e9;padding:.3rem}
-        .hidden{display:none}
-        .chart{max-width:100%;height:200px;margin-top:.5rem}
+        body { font-family: sans-serif; background: #f0f2f5; padding: 10px; }
+        .card { background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 10px; }
+        .item { padding: 12px; border-bottom: 1px solid #eee; }
+        .controls { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+        button { padding: 5px 8px; cursor: pointer; border: 1px solid #ccc; border-radius: 4px; background: #fff; }
     </style>
 </head>
 <body>
-<script>
-    const password = "asd"; //mia pwd
-    const inserita = prompt("Inserisci la password per accedere:");
-    if (inserita !== password) {
-        document.body.innerHTML = "<h1>Accesso negato</h1>";
-    }
-</script>
-    <div class="container">
-    <header id="headerMese">📊 SPESE – </header>
 
-    <!-- ==== Form di inserimento ==== -->
-    <div class="card">
-        <h3>➕ Aggiungi spesa</h3>
-        <input type="number" id="importo" placeholder="Importo (€)" step="0.01" min="0" required>
-        <select id="categoria" required>
-            <option value="">Seleziona categoria</option>
-            <option>Abbigliamento&Cura</option>
-            <option>Spesa alimentare</option>
-            <option>Cibo&Bevande fuori</option>
-            <option>Casa & Bollette</option>
-            <option>Trasporti</option>
-            <option>TempoLibero&Hobby</option>
-            <option>Regali&Eventi speciali</option>
-            <option>Risparmi&Accantonamenti</option>
-            <option>Altro</option>
-        </select>
-        <input type="text" id="nota" placeholder="Nota (es. iper/eurospin)">
-        <button id="salvaBtn" disabled>✅ Salva</button>
-        <button id="annullaBtn" disabled>❌ Annulla</button>
-    </div>
-
-    <!-- ==== Lista spese ==== -->
-    <div class="card">
-        <h3>📋 Lista spese</h3>
-        <ul id="listaSpese"></ul>
-        <p class="total" id="totaleMese">Totale mese: €0,00</p>
-    </div>
-
-    <!-- ==== Pulsanti extra ==== -->
-    <div class="card" style="display:flex;justify-content:space-between;">
-        <button id="graficiBtn">📊 Grafici</button>
-        <button id="esportaBtn">📥 Esporta</button>
-    </div>
-
-    <!-- ==== Grafici (Chart.js) ==== -->
-    <div class="card hidden" id="graficiContainer">
-        <h3>📈 Grafici</h3>
-        <canvas id="graficoCategorie" class="chart"></canvas>
-    </div>
+<div class="card">
+    <input type="text" id="titolo" placeholder="Nome Serie/Film">
+    <select id="stato">
+        <option value="Da_vedere">Da vedere</option>
+        <option value="In_corso">In corso</option>
+        <option value="Visto">Visto</option>
+    </select>
+    <button onclick="aggiungiMedia()" style="background:#27ae60; color:white;">Aggiungi</button>
 </div>
 
-<!-- Chart.js (CDN) -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<div class="card">
+    <select id="filtroStato" onchange="render()">
+        <option value="Tutti">Mostra tutto</option>
+        <option value="Da_vedere">Da vedere</option>
+        <option value="In_corso">In corso</option>
+        <option value="Visto">Visto</option>
+    </select>
+    <div id="listaMedia"></div>
+</div>
+
 <script>
-    /* ---------- Utility ---------- */
-const storageKey = 'speseFlash';
-function loadData(){ return JSON.parse(localStorage.getItem(storageKey)||'[]'); }
-function saveData(arr){ localStorage.setItem(storageKey, JSON.stringify(arr)); }
+    let mediaList = JSON.parse(localStorage.getItem('myMedia') || '[]');
 
-/* ---------- Rendering filtrato per Mese ---------- */
-const lista = document.getElementById('listaSpese');
-const totaleEl = document.getElementById('totaleMese');
+    function aggiungiMedia() {
+        const t = document.getElementById('titolo');
+        if(!t.value) return;
+        mediaList.unshift({ nome: t.value, stato: document.getElementById('stato').value, s: 1, e: 0, ts: Date.now() });
+        salvaEAggiorna();
+        t.value = '';
+    }
 
-function render(){
-    const spese = loadData();
-    const ora = new Date();
-    // Filtro: mostra solo spese del mese e anno correnti
-    const speseMese = spese.filter(s => {
-        const d = new Date(s.data);
-        return d.getMonth() === ora.getMonth() && d.getFullYear() === ora.getFullYear();
-    });
+    function modNumero(i) {
+        const s = prompt("Stagione:", mediaList[i].s);
+        const e = prompt("Episodio:", mediaList[i].e);
+        if (s !== null && e !== null) {
+            mediaList[i].s = parseInt(s);
+            mediaList[i].e = parseInt(e);
+            salvaEAggiorna();
+        }
+    }
 
-    lista.innerHTML = '';
-    let totale = 0;
-    speseMese.forEach((s, index)=>{
-        const li = document.createElement('li');
-        li.innerHTML = `<strong>${new Date(s.data).toLocaleDateString()}</strong> – €${Number(s.importo).toFixed(2)} – <em>${s.categoria}</em> ${s.nota?'- '+s.nota:''} 
-        <button onclick="eliminaSpesa(${index})" style="background:#e74c3c;padding:2px 8px;font-size:10px;margin-left:10px;">X</button>`;
-        lista.appendChild(li);
-        totale += Number(s.importo);
-    });
-    totaleEl.textContent = `Totale mese: €${totale.toFixed(2)}`;
-    
-    // Aggiorna stato bottoni
-    const importoVal = Number(document.getElementById('importo').value);
-    document.getElementById('salvaBtn').disabled = importoVal <= 0 || document.getElementById('categoria').value === '';
-}
+    function segnaFinita(i) {
+        if(confirm("Segnare la serie come finita/vista?")) {
+            mediaList[i].stato = 'Visto';
+            salvaEAggiorna();
+        }
+    }
 
-function eliminaSpesa(index) {
-    if(!confirm("Eliminare questa spesa?")) return;
-    let spese = loadData();
-    spese.splice(index, 1);
-    saveData(spese);
+    function aggiornaProgresso(i, tipo, delta) {
+        if(tipo === 's') mediaList[i].s = Math.max(1, (mediaList[i].s || 1) + delta);
+        if(tipo === 'e') mediaList[i].e = Math.max(0, (mediaList[i].e || 0) + delta);
+        mediaList[i].ts = Date.now();
+        salvaEAggiorna();
+    }
+
+    function render() {
+        const filtro = document.getElementById('filtroStato').value;
+        const cont = document.getElementById('listaMedia');
+        cont.innerHTML = '';
+        mediaList.sort((a,b) => b.ts - a.ts).forEach((m, i) => {
+            if (filtro !== 'Tutti' && m.stato !== filtro) return;
+            cont.innerHTML += `
+            <div class="item">
+                <div style="display:flex; justify-content:space-between;">
+                    <strong>${m.nome}</strong>
+                    <button onclick="rinomina(${i})">✏️</button>
+                </div>
+                <div class="controls">
+                    <span>S${m.s || 1} E${m.e || 0}</span>
+                    <button onclick="aggiornaProgresso(${i}, 's', 1)">S+</button>
+                    <button onclick="aggiornaProgresso(${i}, 'e', 1)">E+</button>
+                    <button onclick="modNumero(${i})">✏️ Num</button>
+                    <button onclick="segnaFinita(${i})">✅</button>
+                    <button onclick="elimina(${i})" style="color:red">X</button>
+                </div>
+            </div>`;
+        });
+    }
+
+    function rinomina(i) {
+        const n = prompt("Rinomina:", mediaList[i].nome);
+        if(n) { mediaList[i].nome = n; salvaEAggiorna(); }
+    }
+
+    function salvaEAggiorna() {
+        localStorage.setItem('myMedia', JSON.stringify(mediaList));
+        render();
+    }
+
+    function elimina(i) { if(confirm("Eliminare definitivamente?")) { mediaList.splice(i, 1); salvaEAggiorna(); } }
+
     render();
-    // Se il grafico è aperto, lo rinfresca
-    if (!document.getElementById('graficiContainer').classList.contains('hidden')) aggiornaGrafico();
-}
-
-render();
-
-/* ---------- Aggiungi / Annulla ---------- */
-const importoInput = document.getElementById('importo');
-const categoriaInput = document.getElementById('categoria');
-const notaInput = document.getElementById('nota');
-const salvaBtn = document.getElementById('salvaBtn');
-const annullaBtn = document.getElementById('annullaBtn');
-
-function aggiornaUI(){
-    salvaBtn.disabled = Number(importoInput.value) <= 0 || categoriaInput.value === '';
-    annullaBtn.disabled = importoInput.value === '' && categoriaInput.value === '';
-}
-importoInput.addEventListener('input', aggiornaUI);
-categoriaInput.addEventListener('change', aggiornaUI);
-
-salvaBtn.addEventListener('click',()=>{
-    const nuova = {
-        importo: Number(importoInput.value),
-        categoria: categoriaInput.value,
-        nota: notaInput.value.trim(),
-        data: new Date().toISOString()
-    };
-    const spese = loadData();
-    spese.push(nuova);
-    saveData(spese);
-    importoInput.value=''; categoriaInput.selectedIndex=0; notaInput.value='';
-    render();
-    if (!document.getElementById('graficiContainer').classList.contains('hidden')) aggiornaGrafico();
-});
-
-/* ---------- Grafici ---------- */
-let chartInstance = null;
-function aggiornaGrafico() {
-    const spese = loadData();
-    const ora = new Date();
-    const speseMese = spese.filter(s => {
-        const d = new Date(s.data);
-        return d.getMonth() === ora.getMonth() && d.getFullYear() === ora.getFullYear();
-    });
-
-    const catTot = {};
-    speseMese.forEach(s => {
-        catTot[s.categoria] = (catTot[s.categoria]||0) + Number(s.importo);
-    });
-
-    const ctx = document.getElementById('graficoCategorie').getContext('2d');
-    if(chartInstance) chartInstance.destroy();
-    chartInstance = new Chart(ctx, {
-        type:'pie',
-        data: {
-            labels: Object.keys(catTot),
-            datasets: [{
-                data: Object.values(catTot),
-                backgroundColor:['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6','#e67e22','#7f8c8d']
-            }]
-        },
-        options:{responsive:true, plugins:{legend:{position:'bottom'}}}
-    });
-}
-
-document.getElementById('graficiBtn').addEventListener('click',() => {
-    const container = document.getElementById('graficiContainer');
-    container.classList.toggle('hidden');
-    if(!container.classList.contains('hidden')) aggiornaGrafico();
-});
-
-/* ---------- Esporta CSV ---------- */
-document.getElementById('esportaBtn').addEventListener('click',()=>{
-    const spese = loadData();
-    const header = ['Data','Categoria','Importo','Nota'];
-    const rows = spese.map(s=>[new Date(s.data).toLocaleDateString(), s.categoria, s.importo, s.nota]);
-    const csvContent = [header, ...rows].map(r=>r.join(',')).join('\n');
-    const blob = new Blob([csvContent],{type:'text/csv;charset=utf-8;'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'spese_' + new Date().toISOString().slice(0,10) + '.csv';
-    a.click();
-});
-</script>
-<script>
-    // Aggiorna l'intestazione con mese e anno corrente
-    const nomiMesi = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", 
-                      "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
-    const ora = new Date();
-    document.getElementById('headerMese').textContent += `${nomiMesi[ora.getMonth()]} ${ora.getFullYear()}`;
 </script>
 </body>
 </html>
