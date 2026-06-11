@@ -6,18 +6,27 @@
     <title>Media Tracker</title>
     <style>
         body { font-family: sans-serif; padding: 10px; background: #f4f4f4; }
+        .card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; }
         .item { background: white; padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid #27ae60; }
         .buttons { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
-        button { padding: 10px; border: 1px solid #ccc; background: #fff; cursor: pointer; border-radius: 4px; }
+        button { padding: 8px; border: 1px solid #ccc; background: #fff; cursor: pointer; border-radius: 4px; }
     </style>
 </head>
 <body>
 
-<div id="app">
+<div class="card">
     <input type="text" id="titolo" placeholder="Nuovo titolo" style="width:100%; padding:10px; box-sizing:border-box;">
-    <button onclick="aggiungi()" style="width:100%; margin-top:5px; background:#27ae60; color:white;">Aggiungi</button>
-    <div id="lista" style="margin-top:20px;"></div>
+    <button onclick="aggiungi()" style="width:100%; margin-top:5px; background:#27ae60; color:white; border:none; padding:10px;">Aggiungi</button>
 </div>
+
+<div class="card">
+    <select id="filtro" onchange="render()" style="width:100%; padding:10px;">
+        <option value="Tutti">Mostra tutto</option>
+        <option value="In_corso">In corso</option>
+    </select>
+</div>
+
+<div id="lista"></div>
 
 <script>
     let list = JSON.parse(localStorage.getItem('myMedia') || '[]');
@@ -25,8 +34,7 @@
     function aggiungi() {
         let t = document.getElementById('titolo');
         if(!t.value) return;
-        // Salva con le chiavi corrette che il programma si aspetta
-        list.push({nome: t.value, s: 1, e: 0});
+        list.push({nome: t.value, s: 1, e: 0, stato: 'In_corso'});
         localStorage.setItem('myMedia', JSON.stringify(list));
         render();
         t.value = '';
@@ -34,9 +42,12 @@
 
     function render() {
         let div = document.getElementById('lista');
+        let filtro = document.getElementById('filtro').value;
         div.innerHTML = '';
+        
         list.forEach((item, i) => {
-            // Se nome è undefined, prova a recuperare n, altrimenti metti "Senza titolo"
+            if(filtro !== 'Tutti' && item.stato !== filtro) return;
+            
             let titolo = item.nome || item.n || "Senza titolo";
             let s = item.s || 1;
             let e = item.e || 0;
