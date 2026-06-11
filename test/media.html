@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Media Tracker</title>
+    <title>Media Tracker Pro</title>
     <style>
         body { font-family: sans-serif; padding: 10px; background: #f4f4f4; }
         .card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; }
         .item { background: white; padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid #27ae60; }
-        .buttons { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
-        button { padding: 8px; border: 1px solid #ccc; background: #fff; cursor: pointer; border-radius: 4px; }
+        .controls { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+        button { padding: 8px 12px; border: 1px solid #ccc; background: #fff; cursor: pointer; border-radius: 4px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <input type="text" id="titolo" placeholder="Nuovo titolo" style="width:100%; padding:10px; box-sizing:border-box;">
+    <input type="text" id="titolo" placeholder="Nome Serie..." style="width:100%; padding:10px; box-sizing:border-box;">
     <button onclick="aggiungi()" style="width:100%; margin-top:5px; background:#27ae60; color:white; border:none; padding:10px;">Aggiungi</button>
 </div>
 
@@ -23,6 +23,7 @@
     <select id="filtro" onchange="render()" style="width:100%; padding:10px;">
         <option value="Tutti">Mostra tutto</option>
         <option value="In_corso">In corso</option>
+        <option value="Visto">Visto</option>
     </select>
 </div>
 
@@ -48,34 +49,36 @@
         list.forEach((item, i) => {
             if(filtro !== 'Tutti' && item.stato !== filtro) return;
             
-            let titolo = item.nome || item.n || "Senza titolo";
-            let s = item.s || 1;
-            let e = item.e || 0;
-            
             div.innerHTML += `
             <div class="item">
-                <strong>${titolo} (S${s} E${e})</strong>
-                <div class="buttons">
-                    <button onclick="update(${i}, 's', 1)">S+</button>
-                    <button onclick="update(${i}, 'e', 1)">E+</button>
+                <strong>${item.nome} (S${item.s || 1} E${item.e || 0})</strong>
+                <div class="controls">
+                    <button onclick="up(${i}, 's', 1)">S+</button>
+                    <button onclick="up(${i}, 'e', 1)">E+</button>
+                    <button onclick="mod(${i})">Num</button>
+                    <button onclick="finita(${i})">✅</button>
                     <button onclick="del(${i})" style="color:red;">X</button>
                 </div>
             </div>`;
         });
     }
 
-    function update(i, t, d) {
+    function up(i, t, d) {
         if(t=='s') list[i].s = (list[i].s || 1) + d;
         if(t=='e') list[i].e = (list[i].e || 0) + d;
         localStorage.setItem('myMedia', JSON.stringify(list));
         render();
     }
 
-    function del(i) {
-        list.splice(i, 1);
-        localStorage.setItem('myMedia', JSON.stringify(list));
-        render();
+    function mod(i) {
+        let s = prompt("Stagione:", list[i].s);
+        let e = prompt("Episodio:", list[i].e);
+        if(s && e) { list[i].s = parseInt(s); list[i].e = parseInt(e); localStorage.setItem('myMedia', JSON.stringify(list)); render(); }
     }
+
+    function finita(i) { list[i].stato = 'Visto'; localStorage.setItem('myMedia', JSON.stringify(list)); render(); }
+
+    function del(i) { list.splice(i, 1); localStorage.setItem('myMedia', JSON.stringify(list)); render(); }
 
     render();
 </script>
