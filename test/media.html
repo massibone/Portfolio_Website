@@ -25,7 +25,8 @@
     function aggiungi() {
         let t = document.getElementById('titolo');
         if(!t.value) return;
-        list.push({n: t.value, s: 1, e: 0});
+        // Salva con le chiavi corrette che il programma si aspetta
+        list.push({nome: t.value, s: 1, e: 0});
         localStorage.setItem('myMedia', JSON.stringify(list));
         render();
         t.value = '';
@@ -35,9 +36,14 @@
         let div = document.getElementById('lista');
         div.innerHTML = '';
         list.forEach((item, i) => {
+            // Se nome è undefined, prova a recuperare n, altrimenti metti "Senza titolo"
+            let titolo = item.nome || item.n || "Senza titolo";
+            let s = item.s || 1;
+            let e = item.e || 0;
+            
             div.innerHTML += `
             <div class="item">
-                <strong>${item.n} (S${item.s} E${item.e})</strong>
+                <strong>${titolo} (S${s} E${e})</strong>
                 <div class="buttons">
                     <button onclick="update(${i}, 's', 1)">S+</button>
                     <button onclick="update(${i}, 'e', 1)">E+</button>
@@ -48,8 +54,8 @@
     }
 
     function update(i, t, d) {
-        if(t=='s') list[i].s += d;
-        if(t=='e') list[i].e += d;
+        if(t=='s') list[i].s = (list[i].s || 1) + d;
+        if(t=='e') list[i].e = (list[i].e || 0) + d;
         localStorage.setItem('myMedia', JSON.stringify(list));
         render();
     }
