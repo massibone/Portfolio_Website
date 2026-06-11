@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -7,50 +6,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         body { font-family: sans-serif; background: #f0f2f5; padding: 10px; }
-        .card { background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        textarea { width: 100%; height: 100px; margin-bottom: 10px; box-sizing: border-box; }
-        input, select, button { width: 100%; padding: 10px; margin: 5px 0; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box; }
-        .item { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-        .tag { padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; font-weight:bold; margin-right: 8px; }
-        .Visto { background: #d4edda; color: #155724; }
-        .In_corso { background: #fff3cd; color: #856404; }
-        .No { background: #f8d7da; color: #721c24; }
-        .Da_vedere { background: #e2e3e5; color: #383d41; }
+        .card { background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 10px; }
+        .item { display: flex; flex-direction: column; padding: 10px; border-bottom: 1px solid #ddd; }
+        .controls { display: flex; align-items: center; justify-content: space-between; margin-top: 5px; }
+        button { padding: 5px 10px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<script>
-    const password = ""; 
-    const inserita = prompt("Inserisci password:");
-    if (inserita !== password) {
-        document.body.innerHTML = "<h1>Accesso negato</h1>";
-        throw new Error("Accesso negato");
-    }
-</script>
-
 <div class="card">
-    <h3>➕ Aggiungi Titolo</h3>
-    <input type="text" id="titolo" placeholder="Nome Film o Serie...">
+    <h3>➕ Aggiungi</h3>
+    <input type="text" id="titolo" placeholder="Nome Serie/Film">
     <select id="stato">
         <option value="Da_vedere">Da vedere</option>
-        <option value="Visto">Visto (F_)</option>
-        <option value="In_corso">In corso (I_)</option>
-        <option value="No">Non mi piace (X_)</option>
+        <option value="Visto">Visto</option>
+        <option value="In_corso">In corso</option>
     </select>
-    <button onclick="aggiungiMedia()" style="background:#27ae60; color:white;">Aggiungi</button>
+    <button onclick="aggiungiMedia()">Aggiungi</button>
 </div>
 
 <div class="card">
-    <textarea id="importArea" placeholder="Incolla elenco da Keep..."></textarea>
-    <button onclick="importaDaTesto()" style="background:#3498db; color:white;">🚀 Importa Massivamente</button>
-</div>
-
-<div class="card">
-    <input type="text" id="filtro" placeholder="🔍 Cerca tra i tuoi titoli..." oninput="render()">
+    <select id="filtroStato" onchange="render()">
+        <option value="Tutti">Mostra tutto</option>
+        <option value="Da_vedere">Da vedere</option>
+        <option value="In_corso">In corso</option>
+        <option value="Visto">Visto</option>
+    </select>
     <div id="listaMedia"></div>
-    <hr>
-    <button onclick="esportaCSV()" style="background:#9b59b6; color:white;">📥 Esporta Backup CSV</button>
 </div>
 
 <script>
@@ -59,37 +41,40 @@
     function aggiungiMedia() {
         const t = document.getElementById('titolo');
         const s = document.getElementById('stato');
-        if(!t.value) return;
-        mediaList.push({ nome: t.value, stato: s.value });
+        // Aggiungiamo S1 E0 come base
+        mediaList.unshift({ nome: t.value, stato: s.value, s: 1, e: 0, ts: Date.now() });
         salvaEAggiorna();
         t.value = '';
     }
 
-    function importaDaTesto() {
-        const testo = document.getElementById('importArea').value;
-        const righe = testo.split('\n');
-        righe.forEach(riga => {
-            let r = riga.trim();
-            if(!r || r.length < 3) return;
-            let stato = 'Da_vedere';
-            let nome = r;
-            if (r.startsWith('F_')) { stato = 'Visto'; nome = r.substring(2); }
-            else if (r.startsWith('X_')) { stato = 'No'; nome = r.substring(2); }
-            else if (r.startsWith('I_')) { stato = 'In_corso'; nome = r.substring(2); }
-            mediaList.push({ nome: nome, stato: stato });
-        });
+    function aggiornaProgresso(index, tipo, delta) {
+        if(tipo === 's') mediaList[index].s = Math.max(1, mediaList[index].s + delta);
+        if(tipo === 'e') mediaList[index].e = Math.max(0, mediaList[index].e + delta);
+        mediaList[index].ts = Date.now(); // Aggiorna timestamp per ordinamento
         salvaEAggiorna();
-        document.getElementById('importArea').value = '';
     }
 
     function render() {
-        const f = document.getElementById('filtro').value.toLowerCase();
+        const filtro = document.getElementById('filtroStato').value;
         const cont = document.getElementById('listaMedia');
         cont.innerHTML = '';
-        mediaList.filter(m => m.nome.toLowerCase().includes(f)).forEach((m, i) => {
-            cont.innerHTML += `<div class="item">
-                <span><span class="tag ${m.stato}">${m.stato.replace('_',' ')}</span> ${m.nome}</span>
-                <button style="width:auto; padding:2px 8px" onclick="elimina(${i})">X</button>
+        
+        // Ordina per ultimo aggiornato (timestamp)
+        const listaOrdinata = mediaList.sort((a,b) => b.ts - a.ts);
+
+        listaOrdinata.filter(m => filtro === 'Tutti' || m.stato === filtro).forEach((m, i) => {
+            const index = mediaList.indexOf(m);
+            cont.innerHTML += `
+            <div class="item">
+                <strong>${m.nome}</strong>
+                <div class="controls">
+                    <span>S${m.s} E${m.e}</span>
+                    <div>
+                        <button onclick="aggiornaProgresso(${index}, 's', 1)">S+</button>
+                        <button onclick="aggiornaProgresso(${index}, 'e', 1)">E+</button>
+                        <button onclick="elimina(${index})">X</button>
+                    </div>
+                </div>
             </div>`;
         });
     }
@@ -99,26 +84,9 @@
         render();
     }
 
-    function elimina(i) {
-        if(confirm("Eliminare?")) {
-            mediaList.splice(i, 1);
-            salvaEAggiorna();
-        }
-    }
-
-    function esportaCSV() {
-        const csvContent = "data:text/csv;charset=utf-8," + mediaList.map(m => `${m.nome},${m.stato}`).join("\n");
-        const link = document.createElement("a");
-        link.setAttribute("href", encodeURI(csvContent));
-        link.setAttribute("download", "backup_media.csv");
-        document.body.appendChild(link);
-        link.click();
-    }
+    function elimina(i) { if(confirm("Eliminare?")) { mediaList.splice(i, 1); salvaEAggiorna(); } }
 
     render();
 </script>
 </body>
 </html>
-
-
-
