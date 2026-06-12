@@ -7,7 +7,9 @@
     <style>
         body { font-family: sans-serif; padding: 10px; background: #f4f4f4; }
         .card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; }
-        .item { background: white; padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid #27ae60; }
+        /* Serie: bordo verde, Film: bordo arancione */
+        .item-serie { background: white; padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid #27ae60; }
+        .item-film { background: white; padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid #e67e22; }
         .controls { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
         button { padding: 8px 12px; border: 1px solid #ccc; background: #fff; cursor: pointer; border-radius: 4px; font-weight: bold; }
     </style>
@@ -15,8 +17,11 @@
 <body>
 
 <div class="card">
-    <input type="text" id="titolo" placeholder="Nuova serie..." style="width:100%; padding:10px; box-sizing:border-box;">
-    <button onclick="aggiungi()" style="width:100%; margin-top:5px; background:#27ae60; color:white; border:none; padding:10px;">Aggiungi</button>
+    <input type="text" id="titolo" placeholder="Nome titolo..." style="width:100%; padding:10px; box-sizing:border-box;">
+    <div style="display:flex; gap:5px; margin-top:5px;">
+        <button onclick="aggiungi('serie')" style="flex:1; background:#27ae60; color:white; border:none;">➕ Serie TV</button>
+        <button onclick="aggiungi('film')" style="flex:1; background:#e67e22; color:white; border:none;">➕ Film</button>
+    </div>
 </div>
 
 <div class="card">
@@ -33,10 +38,10 @@
 <script>
     let list = JSON.parse(localStorage.getItem('myMedia') || '[]');
 
-    function aggiungi() {
+    function aggiungi(tipo) {
         let t = document.getElementById('titolo');
         if(!t.value) return;
-        list.push({nome: t.value, s: 1, e: 0, stato: 'In_corso'});
+        list.push({nome: t.value, tipo: tipo, s: 1, e: 0, stato: 'In_corso'});
         salva(); render(); t.value = '';
     }
 
@@ -47,22 +52,25 @@
         div.innerHTML = '';
         
         list.forEach((item, i) => {
-            // Filtri: Stato + Ricerca (min 3 caratteri)
             if(filtro !== 'Tutti' && item.stato !== filtro) return;
             if(testo.length >= 3 && !item.nome.toLowerCase().includes(testo)) return;
             
+            let classe = item.tipo === 'film' ? 'item-film' : 'item-serie';
+            let info = item.tipo === 'film' ? "" : `(S${item.s || 1} E${item.e || 0})`;
             let btnStato = item.stato === 'In_corso' ? '✅' : '🔄';
-            
+            let bottoniControlli = item.tipo === 'film' ? "" : `
+                <button onclick="up(${i}, 's', 1)">S+</button>
+                <button onclick="up(${i}, 'e', 1)">E+</button>
+                <button onclick="mod(${i})">Num</button>`;
+
             div.innerHTML += `
-            <div class="item">
+            <div class="${classe}">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <strong>${item.nome} (S${item.s} E${item.e})</strong>
+                    <strong>${item.nome} ${info}</strong>
                     <button onclick="editTitolo(${i})">✏️</button>
                 </div>
                 <div class="controls">
-                    <button onclick="up(${i}, 's', 1)">S+</button>
-                    <button onclick="up(${i}, 'e', 1)">E+</button>
-                    <button onclick="mod(${i})">Num</button>
+                    ${bottoniControlli}
                     <button onclick="toggleStato(${i})">${btnStato}</button>
                     <button onclick="del(${i})" style="color:red;">X</button>
                 </div>
