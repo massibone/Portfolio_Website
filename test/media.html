@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Media Tracker Pro</title>
+    <title>Serie Tv & Film Tracker</title>
     <style>
         body { font-family: sans-serif; padding: 10px; background: #f4f4f4; }
         .card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; }
-        /* Serie: bordo verde, Film: bordo arancione */
         .item-serie { background: white; padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid #27ae60; }
         .item-film { background: white; padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid #e67e22; }
         .controls { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
@@ -58,10 +57,12 @@
             let classe = item.tipo === 'film' ? 'item-film' : 'item-serie';
             let info = item.tipo === 'film' ? "" : `(S${item.s || 1} E${item.e || 0})`;
             let btnStato = item.stato === 'In_corso' ? '✅' : '🔄';
+            
             let bottoniControlli = item.tipo === 'film' ? "" : `
                 <button onclick="up(${i}, 's', 1)">S+</button>
                 <button onclick="up(${i}, 'e', 1)">E+</button>
-                <button onclick="mod(${i})">Num</button>`;
+                <button onclick="mod(${i})">Num</button>
+                <button onclick="convertiInFilm(${i})">🎥</button>`;
 
             div.innerHTML += `
             <div class="${classe}">
@@ -76,6 +77,15 @@
                 </div>
             </div>`;
         });
+    }
+
+    function convertiInFilm(i) {
+        if(confirm("Trasformare in Film?")) {
+            list[i].tipo = 'film';
+            list[i].s = null;
+            list[i].e = null;
+            salva(); render();
+        }
     }
 
     function editTitolo(i) {
@@ -97,11 +107,11 @@
     function mod(i) {
         let s = prompt("Stagione:", list[i].s);
         let e = prompt("Episodio:", list[i].e);
-        if(s && e) { list[i].s = parseInt(s); list[i].e = parseInt(e); salva(); render(); }
+        if(s !== null && e !== null) { list[i].s = parseInt(s); list[i].e = parseInt(e); salva(); render(); }
     }
 
     function salva() { localStorage.setItem('myMedia', JSON.stringify(list)); }
-    function del(i) { list.splice(i, 1); salva(); render(); }
+    function del(i) { if(confirm("Eliminare?")) { list.splice(i, 1); salva(); render(); } }
 
     render();
 </script>
