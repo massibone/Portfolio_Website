@@ -174,12 +174,26 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
     reader.onload = function(e) {
         const lines = e.target.result.split(/\r?\n/).slice(1);
         let spese = loadData();
+        
         lines.forEach(line => {
             if(!line.trim()) return;
             const cols = line.split(/;(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-            if(cols.length >= 3) spese.push({data: cols[0], categoria: cols[1], importo: parseFloat(cols[2]), nota: cols[3] ? cols[3].replace(/"/g, '') : ''});
+            if(cols.length >= 3) {
+                // Converto la data italiana DD/MM/YYYY in formato leggibile da JS
+                let dataParts = cols[0].split('/'); // divide 01/06/2026
+                let isoDate = `${dataParts[2]}-${dataParts[1]}-${dataParts[0]}T12:00:00`;
+                
+                spese.push({
+                    data: new Date(isoDate).toISOString(), 
+                    categoria: cols[1], 
+                    importo: parseFloat(cols[2]), 
+                    nota: cols[3] ? cols[3].replace(/"/g, '') : ''
+                });
+            }
         });
-        saveData(spese); render(); alert("Importazione riuscita!");
+        saveData(spese); 
+        render(); 
+        alert("Importazione completata! Spese totali in archivio: " + loadData().length);
     };
     reader.readAsText(e.target.files[0]);
 });
