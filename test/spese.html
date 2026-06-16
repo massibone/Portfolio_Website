@@ -16,7 +16,6 @@
         input,select{width:100%;padding:.4rem;margin:.2rem 0;border:1px solid #ccc;border-radius:4px}
         ul{list-style:none;padding:0}
         li{padding:.5rem 0;border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;}
-        .total{font-weight:bold;background:#e8f5e9;padding:.5rem; margin-top:10px;}
         .hidden{display:none}
         .chart{max-width:100%;height:200px;margin-top:.5rem}
     </style>
@@ -45,13 +44,13 @@
         <input type="date" id="dataSpesa" required>
         <select id="categoria" required>
             <option value="">Seleziona categoria</option>
-            <option>Abbigliamento&Cura</option>
+            <option>Abbigliamento & Cura</option>
             <option>Spesa alimentare</option>
-            <option>Cibo&Bevande fuori</option>
+            <option>Cibo & Bevande fuori</option>
             <option>Casa & Bollette</option>
             <option>Trasporti</option>
-            <option>TempoLibero&Hobby</option>
-            <option>Regali&Eventi</option>
+            <option>TempoLibero & Hobby</option>
+            <option>Regali & Eventi</option>
             <option>Risparmi</option>
             <option>Altro</option>
         </select>
@@ -62,7 +61,7 @@
     <div class="card">
         <h3>📋 Lista spese</h3>
         <ul id="listaSpese"></ul>
-        <p class="total" id="totaleMese">Totale mese: €0,00</p>
+        <p id="totaleMese" style="display:none;"></p>
     </div>
 
     <div class="card" style="display:flex; flex-direction:column;">
@@ -71,7 +70,6 @@
             <button onclick="esportaCSV()" style="background:#3498db;">📥 Esporta</button>
             <button onclick="importaManuale()" style="background:#e67e22;">📤 Importa</button>
         </div>
-        <input type="file" id="fileInput" class="hidden" accept=".csv">
     </div>
 
     <div class="card hidden" id="graficiContainer">
@@ -93,13 +91,6 @@ function aggiornaHeader() {
     document.getElementById('headerMese').textContent = `${m[dataVisualizzata.getMonth()]} ${dataVisualizzata.getFullYear()}`;
 }
 
-function renderDateFiltered(spese) {
-    return spese.filter(s => {
-        const d = new Date(s.data);
-        return d.getMonth() === dataVisualizzata.getMonth() && d.getFullYear() === dataVisualizzata.getFullYear();
-    });
-}
-
 function render() {
     const spese = loadData();
     const speseMese = spese.filter(s => {
@@ -109,8 +100,6 @@ function render() {
 
     const lista = document.getElementById('listaSpese');
     lista.innerHTML = '';
-    
-    // Rimuoviamo il vecchio riepilogo per aggiornarlo
     const vecchioRiepilogo = document.getElementById('riepilogoCat');
     if (vecchioRiepilogo) vecchioRiepilogo.remove();
 
@@ -131,42 +120,14 @@ function render() {
             totale += importo;
         });
 
-        // Creazione box riepilogo con Totale Generale in alto e sfondo grigio chiaro
         let riepilogoHTML = '<div id="riepilogoCat" class="card" style="font-size: 0.9rem; background: #f9f9f9; padding: 10px; margin-bottom: 10px; border-radius: 8px;">';
-        
-        // 1. Totale Generale in alto, ben visibile
-        riepilogoHTML += `<h3 style="margin:0 0 10px 0;">Totale mese: €${totale.toFixed(2)}</h3>`;
-        riepilogoHTML += '<strong>Totali per Categoria:</strong><br>';
-        
-        // 2. Estrazione "Altro" per posizionarlo per ultimo
+        riepilogoHTML += `<h3 style="margin:0 0 10px 0;">Totale mese: €${totale.toFixed(2)}</h3><strong>Totali per Categoria:</strong><br>`;
         let altroTotale = totaliPerCategoria['Altro'] || 0;
         delete totaliPerCategoria['Altro'];
-
-        // 3. Stampa categorie escluso "Altro"
-        for (const cat in totaliPerCategoria) {
-            riepilogoHTML += `${cat}: <strong>€${totaliPerCategoria[cat].toFixed(2)}</strong><br>`;
-        }
-        
-        
+        for (const cat in totaliPerCategoria) riepilogoHTML += `${cat}: <strong>€${totaliPerCategoria[cat].toFixed(2)}</strong><br>`;
+        riepilogoHTML += `Altro: <strong>€${altroTotale.toFixed(2)}</strong></div>';
         lista.insertAdjacentHTML('beforebegin', riepilogoHTML);
     }
-    
-    // Nascondiamo il totale in fondo dato che ora è nel box riepilogo
-    document.getElementById('totaleMese').style.display = 'none'; 
-}
-    // 3. Creiamo il box riepilogo (solo se ci sono spese)
-    if (speseMese.length > 0) {
-        let riepilogoHTML = '<div id="riepilogoCat" class="card" style="font-size: 0.85rem; background: #f9f9f9; margin-bottom: 10px;"><strong>Totali per Categoria:</strong><br>';
-        for (const cat in totaliPerCategoria) {
-            riepilogoHTML += `${cat}: <strong>€${totaliPerCategoria[cat].toFixed(2)}</strong><br>`;
-        }
-        riepilogoHTML += '</div>';
-        // Inseriamo il riepilogo prima della lista
-        lista.insertAdjacentHTML('beforebegin', riepilogoHTML);
-    }
-    
-
-    document.getElementById('totaleMese').textContent = `Totale mese: €${totale.toFixed(2)}`;
 }
 
 function cambiaMese(d) { dataVisualizzata.setMonth(dataVisualizzata.getMonth() + d); aggiornaHeader(); render(); if(!document.getElementById('graficiContainer').classList.contains('hidden')) aggiornaGrafico(); }
@@ -174,114 +135,48 @@ function cambiaMese(d) { dataVisualizzata.setMonth(dataVisualizzata.getMonth() +
 function eliminaSpesa(index) {
     if(!confirm("Eliminare questa spesa?")) return;
     let spese = loadData();
-    const speseFiltrate = renderDateFiltered(spese);
-    const spesaDaEliminare = speseFiltrate[index];
-    const realIndex = spese.indexOf(spesaDaEliminare);
-    spese.splice(realIndex, 1);
-    saveData(spese);
-    render();
-    if (!document.getElementById('graficiContainer').classList.contains('hidden')) aggiornaGrafico();
+    const speseMese = spese.filter(s => { const d = new Date(s.data); return d.getMonth() === dataVisualizzata.getMonth() && d.getFullYear() === dataVisualizzata.getFullYear(); });
+    const spesaDaEliminare = speseMese[index];
+    spese = spese.filter(s => s !== spesaDaEliminare);
+    saveData(spese); render();
 }
 
-// LOGICA INPUT
 const importoInput = document.getElementById('importo');
 const categoriaInput = document.getElementById('categoria');
 const dataInput = document.getElementById('dataSpesa');
 const salvaBtn = document.getElementById('salvaBtn');
+[importoInput, categoriaInput, dataInput].forEach(el => el.addEventListener('input', () => salvaBtn.disabled = !importoInput.value || !categoriaInput.value || !dataInput.value));
 
-function aggiornaUI(){ salvaBtn.disabled = Number(importoInput.value) <= 0 || categoriaInput.value === '' || dataInput.value === ''; }
-[importoInput, categoriaInput, dataInput].forEach(el => el.addEventListener('input', aggiornaUI));
-
-salvaBtn.addEventListener('click',()=>{
+salvaBtn.addEventListener('click', () => {
     const nuova = { importo: Number(importoInput.value), categoria: categoriaInput.value, nota: document.getElementById('nota').value.trim(), data: new Date(dataInput.value + 'T12:00:00').toISOString() };
     const spese = loadData();
     spese.push(nuova);
     saveData(spese);
     importoInput.value=''; categoriaInput.selectedIndex=0; document.getElementById('nota').value='';
     render();
-    if (!document.getElementById('graficiContainer').classList.contains('hidden')) aggiornaGrafico();
 });
 
-// GRAFICI E CSV
-let chartInstance = null;
-function aggiornaGrafico() {
-    const speseMese = renderDateFiltered(loadData());
-    const catTot = {};
-    speseMese.forEach(s => { catTot[s.categoria] = (catTot[s.categoria]||0) + Number(s.importo); });
-    const ctx = document.getElementById('graficoCategorie').getContext('2d');
-    if(chartInstance) chartInstance.destroy();
-    chartInstance = new Chart(ctx, { type:'pie', data: { labels: Object.keys(catTot), datasets: [{ data: Object.values(catTot), backgroundColor:['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6','#e67e22','#7f8c8d'] }] }, options:{responsive:true, plugins:{legend:{position:'bottom'}}} });
-}
-
-document.getElementById('graficiBtn').addEventListener('click',() => { document.getElementById('graficiContainer').classList.toggle('hidden'); if(!document.getElementById('graficiContainer').classList.contains('hidden')) aggiornaGrafico(); });
-
-function esportaCSV() {
-    const spese = loadData();
-    let csv = "Data;Categoria;Importo;Nota\n" + spese.map(s => `${s.data};${s.categoria};${s.importo};"${s.nota.replace(/"/g, '""')}"`).join("\n");
-    let blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
-    let a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'archivio_spese.csv'; a.click();
-}
 function importaManuale() {
     const testo = prompt("Incolla qui il CSV (formato: Data;Categoria;Importo;Nota)");
     if (!testo) return;
-
     const lines = testo.split(/\r?\n/);
     let spese = loadData();
-    let contatore = 0;
-
     lines.forEach(line => {
         if(!line.trim()) return;
-        // Gestisce il separatore ";" per evitare conflitti con le virgole nei testi
-        const cols = line.split(/;(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-        
+        const cols = line.split(';');
         if(cols.length >= 3) {
-            // Conversione data sicura (DD/MM/YYYY -> YYYY-MM-DD)
-            let dParts = cols[0].split('/'); 
-            if(dParts.length === 3) {
-                let isoData = `${dParts[2]}-${dParts[1]}-${dParts[0]}T12:00:00Z`;
-                spese.push({
-                    data: isoData,
-                    categoria: cols[1],
-                    importo: parseFloat(cols[2].replace(',', '.')), 
-                    nota: cols[3] ? cols[3].replace(/"/g, '') : ''
-                });
-                contatore++;
-            }
+            let dParts = cols[0].split('/');
+            spese.push({ data: `${dParts[2]}-${dParts[1]}-${dParts[0]}T12:00:00Z`, categoria: cols[1], importo: parseFloat(cols[2].replace(',', '.')), nota: cols[3]||'' });
         }
     });
-    
-    saveData(spese);
-    render();
-    alert("Importate " + contatore + " nuove voci!");
+    saveData(spese); render(); alert("Importazione completata!");
 }
-document.getElementById('fileInput').addEventListener('change', function(e) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const lines = e.target.result.split(/\r?\n/).slice(1);
-        let spese = loadData();
-        
-        lines.forEach(line => {
-            if(!line.trim()) return;
-            const cols = line.split(/;(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-            if(cols.length >= 3) {
-                // Converto la data italiana DD/MM/YYYY in formato leggibile da JS
-                let dataParts = cols[0].split('/'); // divide 01/06/2026
-                let isoDate = `${dataParts[2]}-${dataParts[1]}-${dataParts[0]}T12:00:00`;
-                
-                spese.push({
-                    data: new Date(isoDate).toISOString(), 
-                    categoria: cols[1], 
-                    importo: parseFloat(cols[2]), 
-                    nota: cols[3] ? cols[3].replace(/"/g, '') : ''
-                });
-            }
-        });
-        saveData(spese); 
-        render(); 
-        alert("Importazione completata! Spese totali in archivio: " + loadData().length);
-    };
-    reader.readAsText(e.target.files[0]);
-});
+
+function esportaCSV() {
+    const spese = loadData();
+    let csv = "Data;Categoria;Importo;Nota\n" + spese.map(s => `${s.data};${s.categoria};${s.importo};"${s.nota}"`).join("\n");
+    let a = document.createElement('a'); a.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv); a.download = 'spese.csv'; a.click();
+}
 
 aggiornaHeader(); render();
 </script>
