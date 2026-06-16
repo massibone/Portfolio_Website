@@ -147,9 +147,6 @@ function render() {
             riepilogoHTML += `${cat}: <strong>€${totaliPerCategoria[cat].toFixed(2)}</strong><br>`;
         }
         
-        // 4. Stampa "Altro" in coda
-        riepilogoHTML += `Altro: <strong>€${altroTotale.toFixed(2)}</strong>`;
-        riepilogoHTML += '</div>';
         
         lista.insertAdjacentHTML('beforebegin', riepilogoHTML);
     }
