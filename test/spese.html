@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <title>Spese-Flash</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" href="data:,">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body{font-family:Arial,sans-serif;margin:0;padding:0;background:#f5f5f5;color:#333}
         .container{max-width:480px;margin:0 auto;padding:1rem}
@@ -17,7 +15,6 @@
         ul{list-style:none;padding:0}
         li{padding:.5rem 0;border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;}
         .hidden{display:none}
-        .chart{max-width:100%;height:200px;margin-top:.5rem}
     </style>
 </head>
 <body>
@@ -54,27 +51,18 @@
             <option>Risparmi</option>
             <option>Altro</option>
         </select>
-        <input type="text" id="nota" placeholder="Nota (es. iper/eurospin)">
+        <input type="text" id="nota" placeholder="Nota">
         <button id="salvaBtn" disabled>✅ Salva</button>
     </div>
 
     <div class="card">
         <h3>📋 Lista spese</h3>
         <ul id="listaSpese"></ul>
-        <p id="totaleMese" style="display:none;"></p>
     </div>
 
-    <div class="card" style="display:flex; flex-direction:column;">
-        <div style="display:flex; justify-content:space-between;">
-            <button id="graficiBtn">📊 Grafici</button>
-            <button onclick="esportaCSV()" style="background:#3498db;">📥 Esporta</button>
-            <button onclick="importaManuale()" style="background:#e67e22;">📤 Importa</button>
-        </div>
-    </div>
-
-    <div class="card hidden" id="graficiContainer">
-        <h3>📈 Grafici</h3>
-        <canvas id="graficoCategorie" class="chart"></canvas>
+    <div class="card" style="display:flex; justify-content:space-between;">
+        <button onclick="esportaCSV()" style="background:#3498db;">📥 Esporta</button>
+        <button onclick="importaManuale()" style="background:#e67e22;">📤 Importa</button>
     </div>
 </div>
 
@@ -112,10 +100,9 @@ function render() {
         speseMese.forEach((s, index) => {
             const importo = parseFloat(s.importo) || 0;
             totaliPerCategoria[s.categoria] = (totaliPerCategoria[s.categoria] || 0) + importo;
-            
             const li = document.createElement('li');
             li.innerHTML = `<span><strong>${new Date(s.data).getDate()}</strong>: €${importo.toFixed(2)} - <em>${s.categoria}</em> ${s.nota?'- '+s.nota:''}</span>
-                            <button onclick="eliminaSpesa(${index})" style="background:#e74c3c;padding:2px 8px;font-size:12px;">X</button>`;
+                            <button onclick="eliminaSpesa('${s.data}', '${s.categoria}', ${importo})" style="background:#e74c3c;padding:2px 8px;font-size:12px;">X</button>`;
             lista.appendChild(li);
             totale += importo;
         });
@@ -125,20 +112,18 @@ function render() {
         let altroTotale = totaliPerCategoria['Altro'] || 0;
         delete totaliPerCategoria['Altro'];
         for (const cat in totaliPerCategoria) riepilogoHTML += `${cat}: <strong>€${totaliPerCategoria[cat].toFixed(2)}</strong><br>`;
-        riepilogoHTML += `Altro: <strong>€${altroTotale.toFixed(2)}</strong></div>';
+        riepilogoHTML += `Altro: <strong>€${altroTotale.toFixed(2)}</strong></div>`;
         lista.insertAdjacentHTML('beforebegin', riepilogoHTML);
     }
 }
 
-function cambiaMese(d) { dataVisualizzata.setMonth(dataVisualizzata.getMonth() + d); aggiornaHeader(); render(); if(!document.getElementById('graficiContainer').classList.contains('hidden')) aggiornaGrafico(); }
+function cambiaMese(d) { dataVisualizzata.setMonth(dataVisualizzata.getMonth() + d); aggiornaHeader(); render(); }
 
-function eliminaSpesa(index) {
-    if(!confirm("Eliminare questa spesa?")) return;
+function eliminaSpesa(data, cat, imp) {
+    if(!confirm("Eliminare?")) return;
     let spese = loadData();
-    const speseMese = spese.filter(s => { const d = new Date(s.data); return d.getMonth() === dataVisualizzata.getMonth() && d.getFullYear() === dataVisualizzata.getFullYear(); });
-    const spesaDaEliminare = speseMese[index];
-    spese = spese.filter(s => s !== spesaDaEliminare);
-    saveData(spese); render();
+    const idx = spese.findIndex(s => s.data === data && s.categoria === cat && Math.abs(s.importo - imp) < 0.01);
+    if(idx > -1) { spese.splice(idx, 1); saveData(spese); render(); }
 }
 
 const importoInput = document.getElementById('importo');
@@ -157,24 +142,22 @@ salvaBtn.addEventListener('click', () => {
 });
 
 function importaManuale() {
-    const testo = prompt("Incolla qui il CSV (formato: Data;Categoria;Importo;Nota)");
+    const testo = prompt("Incolla qui il CSV (Data;Categoria;Importo;Nota)");
     if (!testo) return;
-    const lines = testo.split(/\r?\n/);
     let spese = loadData();
-    lines.forEach(line => {
-        if(!line.trim()) return;
+    testo.split(/\r?\n/).forEach(line => {
         const cols = line.split(';');
         if(cols.length >= 3) {
             let dParts = cols[0].split('/');
             spese.push({ data: `${dParts[2]}-${dParts[1]}-${dParts[0]}T12:00:00Z`, categoria: cols[1], importo: parseFloat(cols[2].replace(',', '.')), nota: cols[3]||'' });
         }
     });
-    saveData(spese); render(); alert("Importazione completata!");
+    saveData(spese); render(); alert("Importato!");
 }
 
 function esportaCSV() {
     const spese = loadData();
-    let csv = "Data;Categoria;Importo;Nota\n" + spese.map(s => `${s.data};${s.categoria};${s.importo};"${s.nota}"`).join("\n");
+    let csv = "Data;Categoria;Importo;Nota\n" + spese.map(s => `${s.data.split('T')[0].split('-').reverse().join('/')};${s.categoria};${s.importo};"${s.nota}"`).join("\n");
     let a = document.createElement('a'); a.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv); a.download = 'spese.csv'; a.click();
 }
 
