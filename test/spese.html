@@ -16,23 +16,25 @@
 </head>
 <body>
 
-<div class="card">
-    <h3>Nuova Spesa</h3>
-    <input type="number" id="importo" placeholder="Importo (€)" step="0.01">
-    <input type="text" id="descrizione" placeholder="Descrizione (es. Eurospin, Bolletta)">
-    <select id="categoria">
-        <option value="Abbigliamento&Cura">Abbigliamento & Cura</option>
-        <option value="Spesa Alimentare">Spesa Alimentare</option>
-        <option value="Casa">Casa</option>
-        <option value="Trasporti">Trasporti</option>
-        <option value="Salute">Salute</option>
-        <option value="Svago">Svago</option>
-        <option value="Lavoro">Lavoro</option>
-        <option value="Utenze">Utenze</option>
-        <option value="Altro">Altro</option>
-    </select>
-    <button onclick="aggiungiSpesa()">Salva Spesa</button>
-</div>
+  <div class="card">
+        <h3>➕ Nuova spesa</h3>
+        <input type="number" id="importo" placeholder="Importo (€)" step="0.01" min="0" required>
+        <input type="date" id="dataSpesa" required>
+        <select id="categoria" required>
+            <option value="">Seleziona categoria</option>
+            <option>Abbigliamento&Cura</option>
+            <option>Spesa alimentare</option>
+            <option>Cibo&Bevande fuori</option>
+            <option>Casa & Bollette</option>
+            <option>Trasporti</option>
+            <option>TempoLibero&Hobby</option>
+            <option>Regali&Eventi</option>
+            <option>Risparmi</option>
+            <option>Altro</option>
+        </select>
+        <input type="text" id="nota" placeholder="Nota (es. iper/eurospin)">
+        <button id="salvaBtn" disabled>✅ Salva</button>
+    </div>
 
 <div class="card">
     <div style="display:flex; gap:5px;">
