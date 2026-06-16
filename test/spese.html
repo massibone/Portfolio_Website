@@ -2,125 +2,125 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Spese-Flash</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" href="data:,">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tracker Spese Pro</title>
     <style>
-        body{font-family:Arial,sans-serif;margin:0;padding:0;background:#f5f5f5;color:#333}
-        .container{max-width:480px;margin:0 auto;padding:1rem}
-        header{background:#2c3e50;color:#fff;padding:.5rem 1rem;text-align:center;font-size:1.2rem; display:flex; justify-content:space-between; align-items:center; border-radius:8px;}
-        .card{background:#fff;border-radius:8px;margin:.5rem 0;padding:.8rem;box-shadow:0 2px 4px rgba(0,0,0,.1)}
-        button{background:#27ae60;color:#fff;border:none;border-radius:4px;padding:.5rem 1rem;margin:.2rem;cursor:pointer}
-        button.secondary{background:#3498db;}
-        input,select{width:100%;padding:.4rem;margin:.2rem 0;border:1px solid #ccc;border-radius:4px}
-        ul{list-style:none;padding:0}
-        li{padding:.5rem 0;border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;}
-        .total{font-weight:bold;background:#e8f5e9;padding:.5rem; margin-top:10px;}
-        .cat-total{font-size:0.9rem; margin:2px 0; color:#555;}
-        .hidden{display:none}
-        .chart{max-width:100%;height:200px;margin-top:.5rem}
+        body { font-family: sans-serif; padding: 10px; background: #f4f4f4; line-height: 1.5; }
+        .card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .item { background: white; padding: 12px; margin-bottom: 8px; border-radius: 8px; border-left: 5px solid #3498db; display: flex; justify-content: space-between; align-items: center; }
+        input, select, button { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; }
+        button { background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-del { background: #e74c3c; width: auto; padding: 5px 10px; }
+        .totale-box { font-size: 0.9em; color: #333; margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <header>
-        <button onclick="cambiaMese(-1)" style="background:transparent; color:white; border:none; font-size:1.5rem;">⬅️</button>
-        <span id="headerMese"></span>
-        <button onclick="cambiaMese(1)" style="background:transparent; color:white; border:none; font-size:1.5rem;">➡️</button>
-    </header>
-
-    <div class="card">
-        <h3>➕ Aggiungi spesa</h3>
-        <input type="number" id="importo" placeholder="Importo (€)" step="0.01" min="0">
-        <input type="date" id="dataSpesa">
-        <select id="categoria">
-            <option value="">Seleziona categoria</option>
-            <option>Abbigliamento&Cura</option><option>Spesa alimentare</option>
-            <option>Cibo&Bevande fuori</option><option>Casa & Bollette</option>
-            <option>Trasporti</option><option>TempoLibero&Hobby</option>
-            <option>Regali&Eventi</option><option>Risparmi</option><option>Altro</option>
-        </select>
-        <input type="text" id="nota" placeholder="Nota">
-        <button id="salvaBtn" disabled style="width:100%">✅ Salva</button>
-    </div>
-
-    <div class="card">
-        <h3>📋 Lista spese</h3>
-        <div id="totaliCategoria" class="card" style="background:#f9f9f9"></div>
-        <ul id="listaSpese"></ul>
-        <p class="total" id="totaleMese">Totale mese: €0,00</p>
-    </div>
-
-    <div class="card">
-        <button id="graficiBtn" class="secondary">📊 Grafici</button>
-        <button id="esportaBtn" class="secondary">📥 Esporta</button>
-        <button onclick="document.getElementById('importFile').click()" class="secondary">📤 Importa</button>
-        <input type="file" id="importFile" class="hidden" accept=".csv">
-    </div>
-
-    <div class="card hidden" id="graficiContainer">
-        <canvas id="graficoCategorie" class="chart"></canvas>
-    </div>
+<div class="card">
+    <h3>Nuova Spesa</h3>
+    <input type="number" id="importo" placeholder="Importo (€)" step="0.01">
+    <input type="text" id="descrizione" placeholder="Descrizione (es. Eurospin, Bolletta)">
+    <select id="categoria">
+        <option value="Abbigliamento&Cura">Abbigliamento & Cura</option>
+        <option value="Spesa Alimentare">Spesa Alimentare</option>
+        <option value="Casa">Casa</option>
+        <option value="Trasporti">Trasporti</option>
+        <option value="Salute">Salute</option>
+        <option value="Svago">Svago</option>
+        <option value="Lavoro">Lavoro</option>
+        <option value="Utenze">Utenze</option>
+        <option value="Altro">Altro</option>
+    </select>
+    <button onclick="aggiungiSpesa()">Salva Spesa</button>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<div class="card">
+    <div style="display:flex; gap:5px;">
+        <button onclick="esportaCSV()" style="background:#2ecc71;">📥 Esporta CSV</button>
+        <button onclick="document.getElementById('importFile').click()" style="background:#f39c12;">📤 Importa CSV</button>
+    </div>
+    <input type="file" id="importFile" onchange="importaCSV(event)" style="display:none;">
+</div>
+
+<div class="card">
+    <select id="filtroCat" onchange="render()">
+        <option value="Tutti">Tutte le categorie</option>
+        </select>
+    <div id="totaliPerCat" class="totale-box"></div>
+    <div id="listaSpese" style="margin-top:15px;"></div>
+</div>
+
 <script>
-const storageKey = 'speseFlash';
-let dataVisualizzata = new Date();
-document.getElementById('dataSpesa').valueAsDate = new Date();
+    let spese = JSON.parse(localStorage.getItem('speseData') || '[]');
+    const categorie = ["Abbigliamento&Cura", "Spesa Alimentare", "Casa", "Trasporti", "Salute", "Svago", "Lavoro", "Utenze", "Altro"];
 
-function loadData(){ return JSON.parse(localStorage.getItem(storageKey)||'[]'); }
-function saveData(arr){ localStorage.setItem(storageKey, JSON.stringify(arr)); }
+    // Inizializza filtro
+    let f = document.getElementById('filtroCat');
+    categorie.forEach(c => f.innerHTML += `<option value="${c}">${c}</option>`);
 
-function render(){
-    const spese = loadData();
-    const speseMese = spese.filter(s => {
-        const d = new Date(s.data);
-        return d.getMonth() === dataVisualizzata.getMonth() && d.getFullYear() === dataVisualizzata.getFullYear();
-    });
-    
-    const lista = document.getElementById('listaSpese');
-    const totDiv = document.getElementById('totaleMese');
-    const catDiv = document.getElementById('totaliCategoria');
-    
-    lista.innerHTML = '';
-    catDiv.innerHTML = '<strong>Totali per categoria:</strong>';
-    let totale = 0;
-    let catTotali = {};
-
-    speseMese.forEach((s, index)=>{
-        const li = document.createElement('li');
-        li.innerHTML = `<span><strong>${new Date(s.data).getDate()}</strong>: €${Number(s.importo).toFixed(2)} - <em>${s.categoria}</em></span>
-                        <button onclick="eliminaSpesa(${index})" style="background:#e74c3c;padding:2px 8px;">X</button>`;
-        lista.appendChild(li);
-        totale += Number(s.importo);
-        catTotali[s.categoria] = (catTotali[s.categoria] || 0) + Number(s.importo);
-    });
-
-    for(let cat in catTotali) {
-        catDiv.innerHTML += `<div class="cat-total">${cat}: €${catTotali[cat].toFixed(2)}</div>`;
+    function aggiungiSpesa() {
+        let imp = document.getElementById('importo').value;
+        let des = document.getElementById('descrizione').value;
+        let cat = document.getElementById('categoria').value;
+        if(!imp || !des) { alert("Compila tutti i campi!"); return; }
+        
+        spese.push({imp: parseFloat(imp), des, cat, data: new Date().toLocaleDateString()});
+        salva(); render();
+        document.getElementById('importo').value = '';
+        document.getElementById('descrizione').value = '';
     }
-    totDiv.textContent = `Totale mese: €${totale.toFixed(2)}`;
-}
 
-// Importazione CSV
-document.getElementById('importFile').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const lines = e.target.result.split('\n').slice(1);
-        let spese = loadData();
-        lines.forEach(line => {
-            const [data, categoria, importo, nota] = line.split(',');
-            if(data && importo) spese.push({data: new Date(data).toISOString(), categoria, importo, nota});
+    function render() {
+        let lista = document.getElementById('listaSpese');
+        let filtro = document.getElementById('filtroCat').value;
+        let totDiv = document.getElementById('totaliPerCat');
+        lista.innerHTML = '';
+        
+        let report = {};
+        categorie.forEach(c => report[c] = 0);
+
+        spese.forEach((s, i) => {
+            report[s.cat] += s.imp;
+            if(filtro !== 'Tutti' && s.cat !== filtro) return;
+            
+            lista.innerHTML += `
+            <div class="item">
+                <div><strong>${s.des}</strong><br><small>${s.cat} - ${s.data}</small></div>
+                <div>${s.imp.toFixed(2)}€ <button class="btn-del" onclick="del(${i})">X</button></div>
+            </div>`;
         });
-        saveData(spese); render();
-    };
-    reader.readAsText(file);
-});
 
-// ... (tieni le restanti funzioni salvaBtn, eliminaSpesa, cambiaMese, ecc. dal tuo codice originale)
+        totDiv.innerHTML = "<strong>Totali per categoria:</strong><br>" + 
+            categorie.map(c => report[c] > 0 ? `${c}: ${report[c].toFixed(2)}€<br>` : "").join("");
+    }
+
+    function salva() { localStorage.setItem('speseData', JSON.stringify(spese)); }
+    function del(i) { if(confirm("Eliminare questa spesa?")) { spese.splice(i, 1); salva(); render(); } }
+
+    function esportaCSV() {
+        let csv = "Data,Descrizione,Categoria,Importo\n" + spese.map(s => `${s.data},${s.des},${s.cat},${s.imp}`).join("\n");
+        let blob = new Blob([csv], {type: 'text/csv'});
+        let url = URL.createObjectURL(blob);
+        let a = document.createElement('a'); a.href = url; a.download = 'spese_backup.csv'; a.click();
+    }
+
+    function importaCSV(e) {
+        let file = e.target.files[0];
+        let reader = new FileReader();
+        reader.onload = function(event) {
+            let righe = event.target.result.split('\n').slice(1);
+            righe.forEach(r => {
+                let [data, des, cat, imp] = r.split(',');
+                if(des && !isNaN(parseFloat(imp))) {
+                    spese.push({data, des, cat, imp: parseFloat(imp)});
+                }
+            });
+            salva(); render(); alert("Importazione terminata!");
+        };
+        reader.readAsText(file);
+    }
+
+    render();
 </script>
 </body>
 </html>
