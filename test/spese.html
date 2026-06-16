@@ -69,7 +69,7 @@
         <div style="display:flex; justify-content:space-between;">
             <button id="graficiBtn">📊 Grafici</button>
             <button onclick="esportaCSV()" style="background:#3498db;">📥 Esporta</button>
-            <button onclick="document.getElementById('fileInput').click()" style="background:#e67e22;">📤 Importa</button>
+            <button onclick="importaManuale()" style="background:#e67e22;">📤 Importa</button>
         </div>
         <input type="file" id="fileInput" class="hidden" accept=".csv">
     </div>
@@ -185,7 +185,39 @@ function esportaCSV() {
     let blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
     let a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'archivio_spese.csv'; a.click();
 }
+function importaManuale() {
+    const testo = prompt("Incolla qui il CSV (formato: Data;Categoria;Importo;Nota)");
+    if (!testo) return;
 
+    const lines = testo.split(/\r?\n/);
+    let spese = loadData();
+    let contatore = 0;
+
+    lines.forEach(line => {
+        if(!line.trim()) return;
+        // Gestisce il separatore ";" per evitare conflitti con le virgole nei testi
+        const cols = line.split(/;(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+        
+        if(cols.length >= 3) {
+            // Conversione data sicura (DD/MM/YYYY -> YYYY-MM-DD)
+            let dParts = cols[0].split('/'); 
+            if(dParts.length === 3) {
+                let isoData = `${dParts[2]}-${dParts[1]}-${dParts[0]}T12:00:00Z`;
+                spese.push({
+                    data: isoData,
+                    categoria: cols[1],
+                    importo: parseFloat(cols[2].replace(',', '.')), 
+                    nota: cols[3] ? cols[3].replace(/"/g, '') : ''
+                });
+                contatore++;
+            }
+        }
+    });
+    
+    saveData(spese);
+    render();
+    alert("Importate " + contatore + " nuove voci!");
+}
 document.getElementById('fileInput').addEventListener('change', function(e) {
     const reader = new FileReader();
     reader.onload = function(e) {
