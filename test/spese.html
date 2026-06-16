@@ -122,17 +122,39 @@ function render(){
 // Importazione CSV
 document.getElementById('fileInput').addEventListener('change', function(e) {
     const file = e.target.files[0];
+    if (!file) return;
+
     const reader = new FileReader();
     reader.onload = function(e) {
-        const rows = e.target.result.split('\n').slice(1);
+        const text = e.target.result;
+        // Divide in righe, eliminando spazi vuoti all'inizio/fine
+        const rows = text.split(/\r?\n/);
         let spese = loadData();
-        rows.forEach(row => {
-            const cols = row.split(',');
-            if(cols.length >= 3) {
-                spese.push({data: new Date(cols[0]).toISOString(), categoria: cols[1], importo: cols[2], nota: cols[3] || ''});
+        
+        // i=1 per saltare l'intestazione (Data,Categoria,Importo,Nota)
+        for (let i = 1; i < rows.length; i++) {
+            const cols = rows[i].split(',');
+            
+            // Verifica che la riga abbia i dati minimi (Data, Categoria, Importo)
+            if (cols.length >= 3) {
+                const data = cols[0].trim();
+                const categoria = cols[1].trim();
+                const importo = parseFloat(cols[2].trim());
+                const nota = cols[3] ? cols[3].trim() : '';
+
+                if (data && categoria && !isNaN(importo)) {
+                    spese.push({
+                        data: new Date(data).toISOString(), 
+                        categoria: categoria, 
+                        importo: importo, 
+                        nota: nota
+                    });
+                }
             }
-        });
-        saveData(spese); render();
+        }
+        saveData(spese);
+        render();
+        alert("Importazione completata!");
     };
     reader.readAsText(file);
 });
