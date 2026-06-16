@@ -2,112 +2,125 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Media Tracker Pro</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>Spese-Flash</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="data:,">
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; padding: 10px; margin: 0; }
-        .card { background: #fff; padding: 12px; border-radius: 8px; margin-bottom: 10px; }
-        .item { padding: 12px; border-bottom: 2px solid #eee; }
-        /* Layout griglia per i bottoni per garantire che appaiano sempre */
-        .controls { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-top: 10px; }
-        button { padding: 8px 2px; cursor: pointer; border: 1px solid #ccc; border-radius: 4px; background: #fff; font-size: 13px; }
-        .btn-main { background: #27ae60; color: white; border: none; font-size: 16px; }
-        .btn-del { color: white; background: #e74c3c; border: none; }
+        body{font-family:Arial,sans-serif;margin:0;padding:0;background:#f5f5f5;color:#333}
+        .container{max-width:480px;margin:0 auto;padding:1rem}
+        header{background:#2c3e50;color:#fff;padding:.5rem 1rem;text-align:center;font-size:1.2rem; display:flex; justify-content:space-between; align-items:center; border-radius:8px;}
+        .card{background:#fff;border-radius:8px;margin:.5rem 0;padding:.8rem;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+        button{background:#27ae60;color:#fff;border:none;border-radius:4px;padding:.5rem 1rem;margin:.2rem;cursor:pointer}
+        button.secondary{background:#3498db;}
+        input,select{width:100%;padding:.4rem;margin:.2rem 0;border:1px solid #ccc;border-radius:4px}
+        ul{list-style:none;padding:0}
+        li{padding:.5rem 0;border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;}
+        .total{font-weight:bold;background:#e8f5e9;padding:.5rem; margin-top:10px;}
+        .cat-total{font-size:0.9rem; margin:2px 0; color:#555;}
+        .hidden{display:none}
+        .chart{max-width:100%;height:200px;margin-top:.5rem}
     </style>
 </head>
 <body>
 
-<div class="card">
-    <input type="text" id="titolo" placeholder="Nome Serie/Film" style="width:100%; padding:8px; box-sizing:border-box;">
-    <select id="stato" style="width:100%; padding:8px; margin:5px 0;">
-        <option value="Da_vedere">Da vedere</option>
-        <option value="In_corso">In corso</option>
-        <option value="Visto">Visto</option>
-    </select>
-    <button class="btn-main" onclick="aggiungiMedia()" style="width:100%;">Aggiungi</button>
+<div class="container">
+    <header>
+        <button onclick="cambiaMese(-1)" style="background:transparent; color:white; border:none; font-size:1.5rem;">⬅️</button>
+        <span id="headerMese"></span>
+        <button onclick="cambiaMese(1)" style="background:transparent; color:white; border:none; font-size:1.5rem;">➡️</button>
+    </header>
+
+    <div class="card">
+        <h3>➕ Aggiungi spesa</h3>
+        <input type="number" id="importo" placeholder="Importo (€)" step="0.01" min="0">
+        <input type="date" id="dataSpesa">
+        <select id="categoria">
+            <option value="">Seleziona categoria</option>
+            <option>Abbigliamento&Cura</option><option>Spesa alimentare</option>
+            <option>Cibo&Bevande fuori</option><option>Casa & Bollette</option>
+            <option>Trasporti</option><option>TempoLibero&Hobby</option>
+            <option>Regali&Eventi</option><option>Risparmi</option><option>Altro</option>
+        </select>
+        <input type="text" id="nota" placeholder="Nota">
+        <button id="salvaBtn" disabled style="width:100%">✅ Salva</button>
+    </div>
+
+    <div class="card">
+        <h3>📋 Lista spese</h3>
+        <div id="totaliCategoria" class="card" style="background:#f9f9f9"></div>
+        <ul id="listaSpese"></ul>
+        <p class="total" id="totaleMese">Totale mese: €0,00</p>
+    </div>
+
+    <div class="card">
+        <button id="graficiBtn" class="secondary">📊 Grafici</button>
+        <button id="esportaBtn" class="secondary">📥 Esporta</button>
+        <button onclick="document.getElementById('importFile').click()" class="secondary">📤 Importa</button>
+        <input type="file" id="importFile" class="hidden" accept=".csv">
+    </div>
+
+    <div class="card hidden" id="graficiContainer">
+        <canvas id="graficoCategorie" class="chart"></canvas>
+    </div>
 </div>
 
-<div class="card">
-    <select id="filtroStato" onchange="render()" style="width:100%; padding:8px;">
-        <option value="Tutti">Mostra tutto</option>
-        <option value="Da_vedere">Da vedere</option>
-        <option value="In_corso">In corso</option>
-        <option value="Visto">Visto</option>
-    </select>
-    <div id="listaMedia"></div>
-</div>
-
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    let mediaList = JSON.parse(localStorage.getItem('myMedia') || '[]');
+const storageKey = 'speseFlash';
+let dataVisualizzata = new Date();
+document.getElementById('dataSpesa').valueAsDate = new Date();
 
-    function aggiungiMedia() {
-        const t = document.getElementById('titolo');
-        if(!t.value) return;
-        mediaList.unshift({ nome: t.value, stato: document.getElementById('stato').value, s: 1, e: 0, ts: Date.now() });
-        salvaEAggiorna();
-        t.value = '';
+function loadData(){ return JSON.parse(localStorage.getItem(storageKey)||'[]'); }
+function saveData(arr){ localStorage.setItem(storageKey, JSON.stringify(arr)); }
+
+function render(){
+    const spese = loadData();
+    const speseMese = spese.filter(s => {
+        const d = new Date(s.data);
+        return d.getMonth() === dataVisualizzata.getMonth() && d.getFullYear() === dataVisualizzata.getFullYear();
+    });
+    
+    const lista = document.getElementById('listaSpese');
+    const totDiv = document.getElementById('totaleMese');
+    const catDiv = document.getElementById('totaliCategoria');
+    
+    lista.innerHTML = '';
+    catDiv.innerHTML = '<strong>Totali per categoria:</strong>';
+    let totale = 0;
+    let catTotali = {};
+
+    speseMese.forEach((s, index)=>{
+        const li = document.createElement('li');
+        li.innerHTML = `<span><strong>${new Date(s.data).getDate()}</strong>: €${Number(s.importo).toFixed(2)} - <em>${s.categoria}</em></span>
+                        <button onclick="eliminaSpesa(${index})" style="background:#e74c3c;padding:2px 8px;">X</button>`;
+        lista.appendChild(li);
+        totale += Number(s.importo);
+        catTotali[s.categoria] = (catTotali[s.categoria] || 0) + Number(s.importo);
+    });
+
+    for(let cat in catTotali) {
+        catDiv.innerHTML += `<div class="cat-total">${cat}: €${catTotali[cat].toFixed(2)}</div>`;
     }
+    totDiv.textContent = `Totale mese: €${totale.toFixed(2)}`;
+}
 
-    function aggiornaProgresso(i, tipo, delta) {
-        if(tipo === 's') mediaList[i].s = Math.max(1, (mediaList[i].s || 1) + delta);
-        if(tipo === 'e') mediaList[i].e = Math.max(0, (mediaList[i].e || 0) + delta);
-        mediaList[i].ts = Date.now();
-        salvaEAggiorna();
-    }
-
-    function render() {
-        const filtro = document.getElementById('filtroStato').value;
-        const cont = document.getElementById('listaMedia');
-        cont.innerHTML = '';
-        mediaList.sort((a,b) => b.ts - a.ts).forEach((m, i) => {
-            if (filtro !== 'Tutti' && m.stato !== filtro) return;
-            cont.innerHTML += `
-            <div class="item">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                    <strong style="font-size:16px;">${m.nome} (S${m.s||1} E${m.e||0})</strong>
-                    <button onclick="rinomina(${i})" style="padding:4px 8px;">✏️</button>
-                </div>
-                <div class="controls">
-                    <button onclick="aggiornaProgresso(${i}, 's', 1)">S+</button>
-                    <button onclick="aggiornaProgresso(${i}, 'e', 1)">E+</button>
-                    <button onclick="modNumero(${i})">Num</button>
-                    <button onclick="segnaFinita(${i})">✅</button>
-                    <button class="btn-del" onclick="elimina(${i})">X</button>
-                </div>
-            </div>`;
+// Importazione CSV
+document.getElementById('importFile').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const lines = e.target.result.split('\n').slice(1);
+        let spese = loadData();
+        lines.forEach(line => {
+            const [data, categoria, importo, nota] = line.split(',');
+            if(data && importo) spese.push({data: new Date(data).toISOString(), categoria, importo, nota});
         });
-    }
+        saveData(spese); render();
+    };
+    reader.readAsText(file);
+});
 
-    function modNumero(i) {
-        const s = prompt("Stagione:", mediaList[i].s);
-        const e = prompt("Episodio:", mediaList[i].e);
-        if (s !== null && e !== null) {
-            mediaList[i].s = parseInt(s);
-            mediaList[i].e = parseInt(e);
-            salvaEAggiorna();
-        }
-    }
-
-    function segnaFinita(i) {
-        if(confirm("Segnare come vista/finita?")) {
-            mediaList[i].stato = 'Visto';
-            salvaEAggiorna();
-        }
-    }
-
-    function rinomina(i) {
-        const n = prompt("Rinomina:", mediaList[i].nome);
-        if(n) { mediaList[i].nome = n; salvaEAggiorna(); }
-    }
-
-    function salvaEAggiorna() {
-        localStorage.setItem('myMedia', JSON.stringify(mediaList));
-        render();
-    }
-
-    function elimina(i) { if(confirm("Eliminare definitivamente?")) { mediaList.splice(i, 1); salvaEAggiorna(); } }
-
-    render();
+// ... (tieni le restanti funzioni salvaBtn, eliminaSpesa, cambiaMese, ecc. dal tuo codice originale)
 </script>
 </body>
 </html>
