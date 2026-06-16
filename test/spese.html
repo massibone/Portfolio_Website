@@ -18,7 +18,7 @@
         .total{font-weight:bold;background:#e8f5e9;padding:.5rem; margin-top:10px;}
         .hidden{display:none}
         .chart{max-width:100%;height:200px;margin-top:.5rem}
-        .cat-info{font-size: 0.85rem; color: #555; margin: 2px 0;}
+        
     </style>
 </head>
 <body>
@@ -82,6 +82,7 @@
 <script>
 const storageKey = 'speseFlash';
 let dataVisualizzata = new Date(); 
+// Imposta data odierna di default
 document.getElementById('dataSpesa').valueAsDate = new Date();
 
 function loadData(){ return JSON.parse(localStorage.getItem(storageKey)||'[]'); }
@@ -118,37 +119,47 @@ function render(){
     
     totDiv.textContent = `Totale mese: €${totale.toFixed(2)}`;
 }
-
+// Export CSV
+function esportaCSV() {
+    // Usiamo ";" come separatore per evitare conflitti con le virgole nei testi
+    let csv = "Data;Categoria;Importo;Nota\n" + spese.map(s => 
+        `${s.data};${s.categoria};${s.importo};"${s.nota.replace(/"/g, '""')}"`
+    ).join("\n");
+    
+    let blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+    let url = URL.createObjectURL(blob);
+    let a = document.createElement('a');
+    a.href = url;
+    a.download = 'archivio_spese.csv';
+    a.click();
+}
 // Importazione CSV
 document.getElementById('fileInput').addEventListener('change', function(e) {
     const file = e.target.files[0];
-    if (!file) return;
-
     const reader = new FileReader();
     reader.onload = function(e) {
-        const text = e.target.result;
-        // Divide in righe, eliminando spazi vuoti all'inizio/fine
-        const rows = text.split(/\r?\n/);
+        const lines = e.target.result.split(/\r?\n/).slice(1);
         let spese = loadData();
         
-        // i=1 per saltare l'intestazione (Data,Categoria,Importo,Nota)
-        for (let i = 1; i < rows.length; i++) {
-            const cols = rows[i].split(',');
+        lines.forEach(line => {
+            if(!line.trim()) return;
+            // Usiamo Regex per dividere correttamente, gestendo le virgole nei testi
+            // Questa Regex divide per ";" ma ignora quelli dentro le virgolette
+            const cols = line.split(/;(?=(?:(?:[^"]*"){2})*[^"]*$)/);
             
-            // Verifica che la riga abbia i dati minimi (Data, Categoria, Importo)
-            if (cols.length >= 3) {
-                const data = cols[0].trim();
-                const categoria = cols[1].trim();
-                const importo = parseFloat(cols[2].trim());
-                const nota = cols[3] ? cols[3].trim() : '';
-
-                if (data && categoria && !isNaN(importo)) {
-                    spese.push({
-                        data: new Date(data).toISOString(), 
-                        categoria: categoria, 
-                        importo: importo, 
-                        nota: nota
-                    });
+            if(cols.length >= 3) {
+                spese.push({
+                    data: new Date(cols[0]).toISOString(), 
+                    categoria: cols[1], 
+                    importo: parseFloat(cols[2]), 
+                    nota: cols[3] ? cols[3].replace(/"/g, '') : ''
+                });
+            }
+        });
+        saveData(spese); render(); alert("Importazione riuscita!");
+    };
+    reader.readAsText(file);
+});
                 }
             }
         }
