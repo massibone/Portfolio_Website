@@ -102,17 +102,34 @@ function renderDateFiltered(spese) {
 
 function render(){
     const spese = loadData();
-    const speseMese = renderDateFiltered(spese);
+    console.log("Totale spese in memoria:", spese.length); // DEBUG: vedrai in F12 quante ne hai salvate
+    
+    // Filtraggio più tollerante
+    const speseMese = spese.filter(s => {
+        const d = new Date(s.data);
+        // Confrontiamo mese e anno
+        return d.getMonth() === dataVisualizzata.getMonth() && d.getFullYear() === dataVisualizzata.getFullYear();
+    });
+
     const lista = document.getElementById('listaSpese');
     lista.innerHTML = '';
     let totale = 0;
+    
+    // Se non trova nulla, diamo un feedback
+    if (speseMese.length === 0) {
+        lista.innerHTML = '<li>Nessuna spesa trovata per questo mese.</li>';
+    }
+
     speseMese.forEach((s, index)=>{
         const li = document.createElement('li');
-        li.innerHTML = `<span><strong>${new Date(s.data).getDate()}</strong>: €${Number(s.importo).toFixed(2)} - <em>${s.categoria}</em> ${s.nota?'- '+s.nota:''}</span>
+        // Usiamo un controllo di sicurezza su importo e categoria
+        const importo = parseFloat(s.importo) || 0;
+        li.innerHTML = `<span><strong>${new Date(s.data).getDate()}</strong>: €${importo.toFixed(2)} - <em>${s.categoria}</em> ${s.nota?'- '+s.nota:''}</span>
                         <button onclick="eliminaSpesa(${index})" style="background:#e74c3c;padding:2px 8px;font-size:12px;">X</button>`;
         lista.appendChild(li);
-        totale += Number(s.importo);
+        totale += importo;
     });
+    
     document.getElementById('totaleMese').textContent = `Totale mese: €${totale.toFixed(2)}`;
 }
 
