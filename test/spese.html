@@ -110,30 +110,53 @@ function render() {
     const lista = document.getElementById('listaSpese');
     lista.innerHTML = '';
     
-    // Rimuoviamo il vecchio riepilogo se esiste
+    // Rimuoviamo il vecchio riepilogo per aggiornarlo
     const vecchioRiepilogo = document.getElementById('riepilogoCat');
     if (vecchioRiepilogo) vecchioRiepilogo.remove();
 
     let totale = 0;
     let totaliPerCategoria = {};
 
-    // 1. Se non trova nulla, diamo un feedback
     if (speseMese.length === 0) {
         lista.innerHTML = '<li>Nessuna spesa trovata per questo mese.</li>';
-    }
+    } else {
+        speseMese.forEach((s, index) => {
+            const importo = parseFloat(s.importo) || 0;
+            totaliPerCategoria[s.categoria] = (totaliPerCategoria[s.categoria] || 0) + importo;
+            
+            const li = document.createElement('li');
+            li.innerHTML = `<span><strong>${new Date(s.data).getDate()}</strong>: €${importo.toFixed(2)} - <em>${s.categoria}</em> ${s.nota?'- '+s.nota:''}</span>
+                            <button onclick="eliminaSpesa(${index})" style="background:#e74c3c;padding:2px 8px;font-size:12px;">X</button>`;
+            lista.appendChild(li);
+            totale += importo;
+        });
 
-    // 2. Ciclo principale: calcoliamo voci E totali per categoria
-    speseMese.forEach((s, index) => {
-        const importo = parseFloat(s.importo) || 0;
-        totaliPerCategoria[s.categoria] = (totaliPerCategoria[s.categoria] || 0) + importo;
+        // Creazione box riepilogo con Totale Generale in alto e sfondo grigio chiaro
+        let riepilogoHTML = '<div id="riepilogoCat" class="card" style="font-size: 0.9rem; background: #f9f9f9; padding: 10px; margin-bottom: 10px; border-radius: 8px;">';
         
-        const li = document.createElement('li');
-        li.innerHTML = `<span><strong>${new Date(s.data).getDate()}</strong>: €${importo.toFixed(2)} - <em>${s.categoria}</em> ${s.nota?'- '+s.nota:''}</span>
-                        <button onclick="eliminaSpesa(${index})" style="background:#e74c3c;padding:2px 8px;font-size:12px;">X</button>`;
-        lista.appendChild(li);
-        totale += importo;
-    });
+        // 1. Totale Generale in alto, ben visibile
+        riepilogoHTML += `<h3 style="margin:0 0 10px 0;">Totale mese: €${totale.toFixed(2)}</h3>`;
+        riepilogoHTML += '<strong>Totali per Categoria:</strong><br>';
+        
+        // 2. Estrazione "Altro" per posizionarlo per ultimo
+        let altroTotale = totaliPerCategoria['Altro'] || 0;
+        delete totaliPerCategoria['Altro'];
 
+        // 3. Stampa categorie escluso "Altro"
+        for (const cat in totaliPerCategoria) {
+            riepilogoHTML += `${cat}: <strong>€${totaliPerCategoria[cat].toFixed(2)}</strong><br>`;
+        }
+        
+        // 4. Stampa "Altro" in coda
+        riepilogoHTML += `Altro: <strong>€${altroTotale.toFixed(2)}</strong>`;
+        riepilogoHTML += '</div>';
+        
+        lista.insertAdjacentHTML('beforebegin', riepilogoHTML);
+    }
+    
+    // Nascondiamo il totale in fondo dato che ora è nel box riepilogo
+    document.getElementById('totaleMese').style.display = 'none'; 
+}
     // 3. Creiamo il box riepilogo (solo se ci sono spese)
     if (speseMese.length > 0) {
         let riepilogoHTML = '<div id="riepilogoCat" class="card" style="font-size: 0.85rem; background: #f9f9f9; margin-bottom: 10px;"><strong>Totali per Categoria:</strong><br>';
