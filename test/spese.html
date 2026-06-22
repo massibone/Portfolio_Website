@@ -91,7 +91,6 @@ function render() {
         return d.getMonth() === dataVisualizzata.getMonth() && d.getFullYear() === dataVisualizzata.getFullYear();
     });
 
-    
     const lista = document.getElementById('listaSpese');
     lista.innerHTML = '';
     const vecchioRiepilogo = document.getElementById('riepilogoCat');
@@ -104,10 +103,15 @@ function render() {
         lista.innerHTML = '<li>Nessuna spesa trovata per questo mese.</li>';
     } else {
         speseMese.forEach((s, index) => {
+            // --- LOGICA DI PULIZIA AUTOMATICA ---
+            // Uniforma i nomi: mette spazi attorno alla & e rimuove spazi doppi
+            let catNorm = s.categoria.replace(/&/g, ' & ').replace(/\s+/g, ' ').trim();
+            
             const importo = parseFloat(s.importo) || 0;
-            totaliPerCategoria[s.categoria] = (totaliPerCategoria[s.categoria] || 0) + importo;
+            totaliPerCategoria[catNorm] = (totaliPerCategoria[catNorm] || 0) + importo;
+            
             const li = document.createElement('li');
-            li.innerHTML = `<span><strong>${new Date(s.data).getDate()}</strong>: €${importo.toFixed(2)} - <em>${s.categoria}</em> ${s.nota?'- '+s.nota:''}</span>
+            li.innerHTML = `<span><strong>${new Date(s.data).getDate()}</strong>: €${importo.toFixed(2)} - <em>${catNorm}</em> ${s.nota?'- '+s.nota:''}</span>
                             <button onclick="eliminaSpesa('${s.data}', '${s.categoria}', ${importo})" style="background:#e74c3c;padding:2px 8px;font-size:12px;">X</button>`;
             lista.appendChild(li);
             totale += importo;
@@ -115,14 +119,17 @@ function render() {
 
         let riepilogoHTML = '<div id="riepilogoCat" class="card" style="font-size: 0.9rem; background: #f9f9f9; padding: 10px; margin-bottom: 10px; border-radius: 8px;">';
         riepilogoHTML += `<h3 style="margin:0 0 10px 0;">Totale mese: €${totale.toFixed(2)}</h3><strong>Totali per Categoria:</strong><br>`;
+        
         let altroTotale = totaliPerCategoria['Altro'] || 0;
         delete totaliPerCategoria['Altro'];
-        for (const cat in totaliPerCategoria) riepilogoHTML += `${cat}: <strong>€${totaliPerCategoria[cat].toFixed(2)}</strong><br>`;
-        riepilogoHTML += `Altro: <strong>€${altroTotale.toFixed(2)}</strong></div>`;
+
+        for (const cat in totaliPerCategoria) {
+            riepilogoHTML += `${cat}: <strong>€${totaliPerCategoria[cat].toFixed(2)}</strong><br>`;
+        }
+        riepilogoHTML += `Altro: <strong>€${altroTotale.toFixed(2)}</strong></div>';
         lista.insertAdjacentHTML('beforebegin', riepilogoHTML);
     }
 }
-
 function cambiaMese(d) { dataVisualizzata.setMonth(dataVisualizzata.getMonth() + d); aggiornaHeader(); render(); }
 
 function eliminaSpesa(data, cat, imp) {
