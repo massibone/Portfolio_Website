@@ -2,14 +2,15 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Spese-Flash Controllo Totale</title>
+    <title>Spese-Flash Pro</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         body{font-family:Arial,sans-serif;margin:0;padding:0;background:#f5f5f5;color:#333}
         .container{max-width:480px;margin:0 auto;padding:1rem}
         .card{background:#fff;border-radius:8px;margin:.5rem 0;padding:.8rem;box-shadow:0 2px 4px rgba(0,0,0,.1)}
         .stat-box { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #eee; }
-        button{background:#27ae60;color:#fff;border:none;border-radius:4px;padding:.5rem;width:100%;cursor:pointer}
+        button{background:#27ae60;color:#fff;border:none;border-radius:4px;padding:.5rem;width:100%;cursor:pointer;margin-top:5px}
+        .btn-extra{background:#3498db;}
     </style>
 </head>
 <body>
@@ -26,12 +27,14 @@
             <option value="var-altro">Variabili: Altro</option>
         </select>
         <input type="text" id="nota" placeholder="Nota">
-        <button onclick="salvaSpesa()">✅ Salva e Aggiorna</button>
+        <button onclick="salvaSpesa()">✅ Salva</button>
     </div>
 
     <div class="card">
-        <h3>📊 Riepilogo Budget Mese</h3>
+        <h3>📊 Riepilogo Totale</h3>
         <div id="riepilogo"></div>
+        <button class="btn-extra" onclick="esportaCSV()">📥 Esporta CSV</button>
+        <button class="btn-extra" style="background:#e67e22;" onclick="importaCSV()">📤 Importa CSV</button>
     </div>
 </div>
 
@@ -44,11 +47,12 @@ function salvaSpesa() {
     const cat = document.getElementById('categoria').value;
     const nota = document.getElementById('nota').value;
     
-    // Logica di calcolo: se annuale divido per 12
+    if(!importo) return;
+
     const impatto = cat === 'fisse-annuale' ? importo / 12 : importo;
     const tipo = cat.includes('fisse') ? 'fisse' : 'variabili';
     
-    spese.push({ tipo, impatto, cat, nota });
+    spese.push({ tipo, impatto, cat, nota, data: new Date().toISOString() });
     localStorage.setItem('mieiDati', JSON.stringify(spese));
     render();
 }
@@ -65,6 +69,31 @@ function render() {
         <div class="stat-box"><span>Residuo Variabili:</span> <strong>${(budget.variabili - tot.variabili).toFixed(2)}€</strong></div>
     `;
 }
+
+function esportaCSV() {
+    let csv = "Data,Tipo,Impatto,Categoria,Nota\n";
+    spese.forEach(s => csv += `${s.data},${s.tipo},${s.impatto},${s.cat},"${s.nota}"\n`);
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'spese_backup.csv'; a.click();
+}
+
+function importaCSV() {
+    const input = prompt("Incolla qui il contenuto del CSV (formato Data,Tipo,Impatto,Categoria,Nota):");
+    if (!input) return;
+    try {
+        const lines = input.split('\n').slice(1);
+        spese = lines.map(line => {
+            const [data, tipo, impatto, cat, nota] = line.split(',');
+            return { tipo, impatto: parseFloat(impatto), cat, nota: nota.replace(/"/g, '') };
+        }).filter(s => s.tipo);
+        localStorage.setItem('mieiDati', JSON.stringify(spese));
+        render();
+        alert("Dati importati correttamente!");
+    } catch(e) { alert("Errore nel formato del file!"); }
+}
+
 render();
 </script>
 </body>
