@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Analisi Portafoglio Geografico</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f4f7f6; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        .highlight { font-weight: bold; color: #2c3e50; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Analisi Portafoglio</h2>
+    <div id="risultato"></div>
+    <table id="tabellaETF">
+        <thead>
+            <tr>
+                <th>Nome ETF</th>
+                <th>Valore (€)</th>
+                <th>Area (USA/Altro)</th>
+            </tr>
+        </thead>
+        <tbody>
+            </tbody>
+    </table>
+</div>
+
+<script>
+const portafoglio = [
+    { nome: "Vanguard FTSE All-World", valore: 100, area: "Altro" },
+    { nome: "iShares MSCI World", valore: 50, area: "USA" },
+    { nome: "Amundi Nasdaq-100", valore: 50, area: "USA" },
+    { nome: "iShares EM IMI", valore: 50, area: "Altro" },
+    { nome: "Invesco Global Active ESG", valore: 50, area: "USA" },
+    { nome: "iShares Global Agg Bond", valore: 50, area: "Altro" },
+    { nome: "Amundi Euro Gov Bond", valore: 0, area: "Altro" },
+    { nome: "iShares Physical Gold", valore: 40, area: "Altro" }
+];
+
+function calcola() {
+    let totale = 0;
+    let totaleUSA = 0;
+    const tbody = document.querySelector("#tabellaETF tbody");
+    
+    portafoglio.forEach(item => {
+        totale += item.valore;
+        if(item.area === "USA") totaleUSA += item.valore;
+        
+        tbody.innerHTML += `<tr><td>${item.nome}</td><td>${item.valore}€</td><td>${item.area}</td></tr>`;
+    });
+
+    const percUSA = (totaleUSA / totale) * 100;
+    document.getElementById("risultato").innerHTML = `
+        <h3>Esposizione USA: <span class="highlight">${percUSA.toFixed(1)}%</span></h3>
+        <p>Totale investito: ${totale}€</p>
+    `;
+}
+
+calcola();
+</script>
+</body>
+</html>
