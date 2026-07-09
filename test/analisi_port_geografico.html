@@ -2,65 +2,62 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Analisi Portafoglio Geografico</title>
+    <title>Analisi Geografica Portafoglio</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f4f7f6; }
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        .highlight { font-weight: bold; color: #2c3e50; }
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }
+        .stat { margin: 10px 0; font-size: 1.1rem; }
+        .bar-container { background: #eee; height: 20px; border-radius: 10px; overflow: hidden; display: flex; margin: 10px 0; }
+        .bar { height: 100%; transition: width 0.5s; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2>Analisi Portafoglio</h2>
-    <div id="risultato"></div>
-    <table id="tabellaETF">
-        <thead>
-            <tr>
-                <th>Nome ETF</th>
-                <th>Valore (€)</th>
-                <th>Area (USA/Altro)</th>
-            </tr>
-        </thead>
-        <tbody>
-            </tbody>
-    </table>
+    <h2>Esposizione Geografica</h2>
+    <div id="graficoBarre" class="bar-container"></div>
+    <div id="dettaglio"></div>
 </div>
 
 <script>
+// Qui puoi aggiungere i tuoi ISIN e mapparli
 const portafoglio = [
-    { nome: "Vanguard FTSE All-World", valore: 100, area: "Altro" },
-    { nome: "iShares MSCI World", valore: 50, area: "USA" },
-    { nome: "Amundi Nasdaq-100", valore: 50, area: "USA" },
-    { nome: "iShares EM IMI", valore: 50, area: "Altro" },
-    { nome: "Invesco Global Active ESG", valore: 50, area: "USA" },
-    { nome: "iShares Global Agg Bond", valore: 50, area: "Altro" },
-    { nome: "Amundi Euro Gov Bond", valore: 0, area: "Altro" },
-    { nome: "iShares Physical Gold", valore: 40, area: "Altro" }
+    { nome: "Vanguard FTSE All-World", valore: 100, zona: "Globale" },
+    { nome: "iShares MSCI World", valore: 50, zona: "USA" },
+    { nome: "Amundi Nasdaq-100", valore: 50, zona: "USA" },
+    { nome: "iShares EM IMI", valore: 50, zona: "Emergenti" },
+    { nome: "Invesco Global Active ESG", valore: 50, zona: "USA" },
+    { nome: "Amundi Euro Gov Bond", valore: 0, zona: "Eurozona" },
+    { nome: "iShares Global Agg Bond", valore: 50, zona: "Altro" },
+    { nome: "iShares Physical Gold", valore: 40, zona: "Altro" }
 ];
 
-function calcola() {
-    let totale = 0;
-    let totaleUSA = 0;
-    const tbody = document.querySelector("#tabellaETF tbody");
-    
-    portafoglio.forEach(item => {
-        totale += item.valore;
-        if(item.area === "USA") totaleUSA += item.valore;
-        
-        tbody.innerHTML += `<tr><td>${item.nome}</td><td>${item.valore}€</td><td>${item.area}</td></tr>`;
+function analizza() {
+    let tot = { USA: 0, Eurozona: 0, Emergenti: 0, Altro: 0, Globale: 0 };
+    let totaleValore = 0;
+
+    portafoglio.forEach(p => {
+        // Logica semplificata: il Globale lo dividiamo al 50% USA e 50% Altro per stima
+        if(p.zona === "Globale") { tot.USA += p.valore * 0.6; tot.Altro += p.valore * 0.4; }
+        else { tot[p.zona] += p.valore; }
+        totaleValore += p.valore;
     });
 
-    const percUSA = (totaleUSA / totale) * 100;
-    document.getElementById("risultato").innerHTML = `
-        <h3>Esposizione USA: <span class="highlight">${percUSA.toFixed(1)}%</span></h3>
-        <p>Totale investito: ${totale}€</p>
-    `;
+    const colori = { USA: "#3498db", Eurozona: "#2ecc71", Emergenti: "#e67e22", Altro: "#9b59b6" };
+    let htmlBarre = "";
+    let htmlDettaglio = "";
+
+    for(let zona in colori) {
+        let perc = (tot[zona] / totaleValore) * 100;
+        htmlBarre += `<div class="bar" style="width:${perc}%; background:${colori[zona]}"></div>`;
+        htmlDettaglio += `<div class="stat"><strong>${zona}:</strong> ${perc.toFixed(1)}%</div>`;
+    }
+
+    document.getElementById("graficoBarre").innerHTML = htmlBarre;
+    document.getElementById("dettaglio").innerHTML = htmlDettaglio;
 }
 
-calcola();
+analizza();
 </script>
 </body>
 </html>
