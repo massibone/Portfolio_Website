@@ -2,22 +2,28 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Spese-Flash Pro</title>
+    <title>Spese-Flash Controllo Totale</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         body{font-family:Arial,sans-serif;margin:0;padding:0;background:#f5f5f5;color:#333}
         .container{max-width:480px;margin:0 auto;padding:1rem}
         .card{background:#fff;border-radius:8px;margin:.5rem 0;padding:.8rem;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+        header{background:#2c3e50;color:#fff;padding:.5rem;text-align:center;border-radius:8px;margin-bottom:10px}
         .stat-box { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #eee; }
         button{background:#27ae60;color:#fff;border:none;border-radius:4px;padding:.5rem;width:100%;cursor:pointer;margin-top:5px}
-        .btn-extra{background:#3498db;}
+        .btn-extra{background:#3498db; width: 48%; display: inline-block; text-align: center; text-decoration: none;}
+        ul{list-style:none;padding:0; font-size: 0.9rem;}
+        li{border-bottom:1px solid #eee; padding:5px 0; display:flex; justify-content:space-between;}
     </style>
 </head>
 <body>
 
 <div class="container">
+    <header id="headerMese"></header>
+
     <div class="card">
         <h3>➕ Aggiungi Spesa</h3>
+        <input type="date" id="dataSpesa">
         <input type="number" id="importo" placeholder="Importo reale (€)" required>
         <select id="categoria">
             <option value="fisse-corrente">Fisse: Alimentari/Bollette</option>
@@ -31,67 +37,74 @@
     </div>
 
     <div class="card">
-        <h3>📊 Riepilogo Totale</h3>
+        <h3>📊 Riepilogo Mese Corrente</h3>
         <div id="riepilogo"></div>
-        <button class="btn-extra" onclick="esportaCSV()">📥 Esporta CSV</button>
-        <button class="btn-extra" style="background:#e67e22;" onclick="importaCSV()">📤 Importa CSV</button>
+        <div style="margin-top:10px; display:flex; justify-content:space-between;">
+            <button class="btn-extra" onclick="esportaCSV()">📥 CSV</button>
+            <button class="btn-extra" style="background:#e67e22;" onclick="importaCSV()">📤 Importa</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>📋 Storico Spese</h3>
+        <ul id="listaSpese"></ul>
     </div>
 </div>
 
 <script>
 const budget = { fisse: 800, variabili: 455 };
 let spese = JSON.parse(localStorage.getItem('mieiDati')) || [];
+document.getElementById('dataSpesa').valueAsDate = new Date();
 
 function salvaSpesa() {
     const importo = parseFloat(document.getElementById('importo').value);
     const cat = document.getElementById('categoria').value;
     const nota = document.getElementById('nota').value;
+    const data = document.getElementById('dataSpesa').value;
     
-    if(!importo) return;
+    if(!importo || !data) return;
 
     const impatto = cat === 'fisse-annuale' ? importo / 12 : importo;
     const tipo = cat.includes('fisse') ? 'fisse' : 'variabili';
     
-    spese.push({ tipo, impatto, cat, nota, data: new Date().toISOString() });
+    spese.push({ tipo, impatto, cat, nota, data, importoReale: importo });
     localStorage.setItem('mieiDati', JSON.stringify(spese));
     render();
 }
 
 function render() {
+    const meseCorrente = new Date().getMonth();
+    const speseMese = spese.filter(s => new Date(s.data).getMonth() === meseCorrente);
+    
     let tot = { fisse: 0, variabili: 0 };
-    spese.forEach(s => tot[s.tipo] += s.impatto);
+    speseMese.forEach(s => tot[s.tipo] += s.impatto);
+    
+    document.getElementById('headerMese').innerText = new Date().toLocaleDateString('it-IT', {month:'long', year:'numeric'});
     
     document.getElementById('riepilogo').innerHTML = `
-        <div class="stat-box"><span>Fisse (Target 800€):</span> <strong>${tot.fisse.toFixed(2)}€</strong></div>
-        <div class="stat-box"><span>Residuo Fisse:</span> <strong>${(budget.fisse - tot.fisse).toFixed(2)}€</strong></div>
-        <hr>
-        <div class="stat-box"><span>Variabili (Target 455€):</span> <strong>${tot.variabili.toFixed(2)}€</strong></div>
-        <div class="stat-box"><span>Residuo Variabili:</span> <strong>${(budget.variabili - tot.variabili).toFixed(2)}€</strong></div>
+        <div class="stat-box"><span>Fisse:</span> <strong>${tot.fisse.toFixed(2)}€ / ${budget.fisse}€</strong></div>
+        <div class="stat-box"><span>Variabili:</span> <strong>${tot.variabili.toFixed(2)}€ / ${budget.variabili}€</strong></div>
     `;
+
+    const lista = document.getElementById('listaSpese');
+    lista.innerHTML = speseMese.map((s, i) => `
+        <li>${s.data} - ${s.nota || s.cat}: <strong>${s.importoReale}€</strong> 
+        <button onclick="elimina(${i})" style="width:auto; padding:0 5px; background:#e74c3c;">X</button></li>
+    `).join('');
 }
 
+function elimina(i) { spese.splice(i, 1); localStorage.setItem('mieiDati', JSON.stringify(spese)); render(); }
+
 function esportaCSV() {
-    let csv = "Data,Tipo,Impatto,Categoria,Nota\n";
-    spese.forEach(s => csv += `${s.data},${s.tipo},${s.impatto},${s.cat},"${s.nota}"\n`);
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'spese_backup.csv'; a.click();
+    let csv = "Data,Tipo,Impatto,Categoria,Nota\n" + spese.map(s => `${s.data},${s.tipo},${s.impatto},${s.cat},"${s.nota}"`).join("\n");
+    const a = document.createElement('a'); a.href = 'data:text/csv,' + encodeURI(csv); a.download = 'backup.csv'; a.click();
 }
 
 function importaCSV() {
-    const input = prompt("Incolla qui il contenuto del CSV (formato Data,Tipo,Impatto,Categoria,Nota):");
+    const input = prompt("Incolla CSV:");
     if (!input) return;
-    try {
-        const lines = input.split('\n').slice(1);
-        spese = lines.map(line => {
-            const [data, tipo, impatto, cat, nota] = line.split(',');
-            return { tipo, impatto: parseFloat(impatto), cat, nota: nota.replace(/"/g, '') };
-        }).filter(s => s.tipo);
-        localStorage.setItem('mieiDati', JSON.stringify(spese));
-        render();
-        alert("Dati importati correttamente!");
-    } catch(e) { alert("Errore nel formato del file!"); }
+    spese = input.split('\n').slice(1).map(l => { const [data, tipo, impatto, cat, nota] = l.split(','); return {data, tipo, impatto:parseFloat(impatto), cat, nota}; });
+    localStorage.setItem('mieiDati', JSON.stringify(spese)); render();
 }
 
 render();
