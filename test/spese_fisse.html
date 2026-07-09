@@ -2,143 +2,79 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Spese-Flash Pro</title>
+    <title>Spese-Flash Controllo Budget</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         body{font-family:Arial,sans-serif;margin:0;padding:0;background:#f5f5f5;color:#333}
         .container{max-width:480px;margin:0 auto;padding:1rem}
-        header{background:#2c3e50;color:#fff;padding:.5rem 1rem;text-align:center;font-size:1.2rem; display:flex; justify-content:space-between; align-items:center; border-radius:8px;}
         .card{background:#fff;border-radius:8px;margin:.5rem 0;padding:.8rem;box-shadow:0 2px 4px rgba(0,0,0,.1)}
-        button{background:#27ae60;color:#fff;border:none;border-radius:4px;padding:.5rem 1rem;margin:.2rem;cursor:pointer}
+        .alert-box { background: #e8f6f3; padding: 10px; border-radius: 8px; border-left: 5px solid #27ae60; font-size: 0.9rem; }
         input,select{width:100%;padding:.4rem;margin:.2rem 0;border:1px solid #ccc;border-radius:4px}
-        ul{list-style:none;padding:0}
-        li{padding:.5rem 0;border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; font-size: 0.9rem;}
-        .budget-box { background: #e8f6f3; padding: 10px; border-radius: 8px; font-size: 0.9rem; margin-top: 5px; }
-        .extra-box { background: #fdebd0; padding: 10px; border-radius: 8px; font-size: 0.9rem; margin-top: 5px; border-left: 5px solid #d35400; }
+        button{background:#27ae60;color:#fff;border:none;border-radius:4px;padding:.5rem 1rem;width:100%;cursor:pointer}
     </style>
 </head>
 <body>
 
 <div class="container">
-    <header>
-        <button onclick="cambiaMese(-1)" style="background:transparent; color:white;">⬅️</button>
-        <span id="headerMese"></span>
-        <button onclick="cambiaMese(1)" style="background:transparent; color:white;">➡️</button>
-    </header>
-
     <div class="card">
-        <h3>➕ Nuova Spesa</h3>
-        <input type="number" id="importo" placeholder="Importo (€)" step="0.01" required>
-        <input type="date" id="dataSpesa" required>
-        <select id="categoria" required>
-    <option value="">Seleziona categoria</option>
-    <optgroup label="Spese Fisse (Correnti)">
-        <option value="Fisse">Spesa alimentare</option>
-        <option value="Fisse">Casa & Bollette (Minori/Standard)</option>
-        <option value="Fisse">Trasporti (Benzina)</option>
-    </optgroup>
-    <optgroup label="Spese Straordinarie (Picchi/Manutenzione)">
-        <option value="Straordinaria">Bollette Pesanti (Gas/Luce > 150€)</option>
-        <option value="Straordinaria">Manutenzione (Auto/Moto/Casa/Idraulico)</option>
-        <option value="Straordinaria">Assicurazioni (RCA/Bollo)</option>
-    </optgroup>
-    <optgroup label="Spese Variabili">
-        <option value="Variabili">Abbigliamento & Cura</option>
-        <option value="Variabili">Cibo & Bevande fuori</option>
-        <option value="Variabili">TempoLibero & Hobby</option>
-        <option value="Variabili">Regali & Eventi</option>
-        <option value="Variabili">Altro</option>
-    </optgroup>
-</select>
-        <input type="text" id="nota" placeholder="Nota (es: capelli, rca scooter)">
-        <button id="salvaBtn" disabled>✅ Salva</button>
+        <h3>➕ Inserisci Spesa</h3>
+        <input type="number" id="importo" placeholder="Importo reale pagato (€)" step="0.01" required>
+        <select id="categoria">
+            <optgroup label="Fisse (Budget 800€)">
+                <option value="fisse-corrente">Alimentari / Bollette / Trasporti</option>
+                <option value="fisse-annuale">Manutenzione / RCA / Bolli (Dividi per 12)</option>
+            </optgroup>
+            <optgroup label="Variabili (Budget 455€)">
+                <option value="var-abbigliamento">Abbigliamento & Cura (Incl. Mediche)</option>
+                <option value="var-ristorazione">Ristorazione (Cibo/Caffè/Birre)</option>
+                <option value="var-viaggi">Viaggi</option>
+                <option value="var-altro">Altro</option>
+            </optgroup>
+        </select>
+        <input type="text" id="nota" placeholder="Nota (es: bolletta gas, cene amici)">
+        <button id="salvaBtn">✅ Verifica Impatto</button>
     </div>
 
-    <div id="riepilogoBudget" class="card"></div>
-    
     <div class="card">
-        <h3>📋 Lista spese mese</h3>
-        <ul id="listaSpese"></ul>
+        <h3>📊 Stato Budget</h3>
+        <div id="risultato" class="alert-box">
+            Inserisci una spesa per vedere come incide sul tuo obiettivo.
+        </div>
     </div>
 </div>
 
 <script>
-const budget = { Fisse: 800, Variabili: 455 };
-const storageKey = 'speseFlash_final';
-let dataVisualizzata = new Date();
-document.getElementById('dataSpesa').valueAsDate = new Date();
-
-function loadData(){ return JSON.parse(localStorage.getItem(storageKey)||'[]'); }
-function saveData(arr){ localStorage.setItem(storageKey, JSON.stringify(arr)); }
-
-function render() {
-    const spese = loadData();
-    const meseCorrente = dataVisualizzata.getMonth();
-    const annoCorrente = dataVisualizzata.getFullYear();
-    
-    const speseMese = spese.filter(s => {
-        const d = new Date(s.data);
-        return d.getMonth() === meseCorrente && d.getFullYear() === annoCorrente;
-    });
-
-    let speso = { Fisse: 0, Variabili: 0, Straordinaria: 0, Investimento: 0 };
-    const lista = document.getElementById('listaSpese');
-    lista.innerHTML = '';
-
-    speseMese.forEach((s, idx) => {
-        speso[s.tipo] += s.importo;
-        const li = document.createElement('li');
-        li.innerHTML = `<span>${s.nota || s.categoria}: <strong>€${s.importo.toFixed(2)}</strong></span>
-                        <button onclick="elimina(${idx})" style="background:#e74c3c;padding:2px 5px;">X</button>`;
-        lista.appendChild(li);
-    });
-
-    const riepilogo = document.getElementById('riepilogoBudget');
-    riepilogo.innerHTML = `<h3>Resoconto</h3>
-        ${['Fisse', 'Variabili'].map(cat => `
-            <div class="budget-box">
-                <strong>${cat}:</strong> ${speso[cat].toFixed(2)}€ / ${budget[cat]}€ 
-                (Residuo: <strong>${(budget[cat] - speso[cat]).toFixed(2)}€</strong>)
-            </div>
-        `).join('')}
-        <div class="extra-box">
-            <strong>Spese Straordinarie:</strong> ${speso.Straordinaria.toFixed(2)}€ 
-            <br><small>(Escluse dal calcolo budget)</small>
-        </div>`;
-    
-    document.getElementById('headerMese').textContent = dataVisualizzata.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
-}
+const budgetTarget = { fisse: 800, variabili: 455 };
 
 document.getElementById('salvaBtn').addEventListener('click', () => {
-    const catEl = document.getElementById('categoria');
-    const spese = loadData();
-    spese.push({
-        importo: parseFloat(document.getElementById('importo').value),
-        categoria: catEl.options[catEl.selectedIndex].text,
-        tipo: catEl.value,
-        nota: document.getElementById('nota').value,
-        data: document.getElementById('dataSpesa').value
-    });
-    saveData(spese);
-    document.getElementById('importo').value = '';
-    document.getElementById('nota').value = '';
-    render();
+    const importo = parseFloat(document.getElementById('importo').value);
+    const cat = document.getElementById('categoria').value;
+    const nota = document.getElementById('nota').value || "Spesa";
+    
+    let impattoMese = 0;
+    let categoria = "";
+    
+    if (cat === 'fisse-corrente') {
+        impattoMese = importo;
+        categoria = "Fisse";
+    } else if (cat === 'fisse-annuale') {
+        impattoMese = importo / 12;
+        categoria = "Fisse (Quota 1/12)";
+    } else {
+        impattoMese = importo;
+        categoria = "Variabili";
+    }
+
+    const tipo = cat.includes('fisse') ? 'fisse' : 'variabili';
+    const residuo = budgetTarget[tipo] - impattoMese;
+
+    document.getElementById('risultato').innerHTML = `
+        <strong>Categoria:</strong> ${categoria}<br>
+        <strong>Impatto sul mese:</strong> €${impattoMese.toFixed(2)}<br>
+        <strong>Residuo Budget ${tipo.toUpperCase()}:</strong> €${residuo.toFixed(2)}<br><br>
+        <em>Nota: ${nota}</em>
+    `;
 });
-
-[document.getElementById('importo'), document.getElementById('categoria')].forEach(el => el.addEventListener('input', () => {
-    document.getElementById('salvaBtn').disabled = !document.getElementById('importo').value || !document.getElementById('categoria').value;
-}));
-
-function cambiaMese(d) { dataVisualizzata.setMonth(dataVisualizzata.getMonth() + d); render(); }
-function elimina(idx) { 
-    if(!confirm("Eliminare questa spesa?")) return;
-    let s = loadData(); 
-    s.splice(idx,1); 
-    saveData(s); 
-    render(); 
-}
-
-render();
 </script>
 </body>
 </html>
