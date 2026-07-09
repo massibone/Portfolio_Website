@@ -2,18 +2,18 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Spese-Flash Controllo Totale</title>
+    <title>Spese-Flash 2026</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         body{font-family:Arial,sans-serif;margin:0;padding:0;background:#f5f5f5;color:#333}
         .container{max-width:480px;margin:0 auto;padding:1rem}
         .card{background:#fff;border-radius:8px;margin:.5rem 0;padding:.8rem;box-shadow:0 2px 4px rgba(0,0,0,.1)}
-        header{background:#2c3e50;color:#fff;padding:.5rem;text-align:center;border-radius:8px;margin-bottom:10px}
-        .stat-box { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #eee; }
-        button{background:#27ae60;color:#fff;border:none;border-radius:4px;padding:.5rem;width:100%;cursor:pointer;margin-top:5px}
-        .btn-extra{background:#3498db; width: 48%; display: inline-block; text-align: center; text-decoration: none;}
-        ul{list-style:none;padding:0; font-size: 0.9rem;}
-        li{border-bottom:1px solid #eee; padding:5px 0; display:flex; justify-content:space-between;}
+        header{background:#2c3e50;color:#fff;padding:1rem;text-align:center;border-radius:8px;margin-bottom:10px;font-weight:bold;}
+        .stat-box { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+        button{background:#27ae60;color:#fff;border:none;border-radius:4px;padding:.6rem;width:100%;cursor:pointer;margin-top:10px}
+        .btn-extra{background:#3498db; width: 48%; display: inline-block; text-align: center; text-decoration: none; padding: 0.5rem; border-radius:4px; color:white; border:none; cursor:pointer;}
+        ul{list-style:none;padding:0; font-size: 0.85rem;}
+        li{border-bottom:1px solid #eee; padding:8px 0; display:flex; justify-content:space-between; align-items:center;}
     </style>
 </head>
 <body>
@@ -23,30 +23,30 @@
 
     <div class="card">
         <h3>➕ Aggiungi Spesa</h3>
-        <input type="date" id="dataSpesa">
-        <input type="number" id="importo" placeholder="Importo reale (€)" required>
-        <select id="categoria">
+        <input type="date" id="dataSpesa" style="width:100%; padding:8px; margin-bottom:5px;">
+        <input type="number" id="importo" placeholder="Importo reale (€)" style="width:100%; padding:8px; margin-bottom:5px;">
+        <select id="categoria" style="width:100%; padding:8px; margin-bottom:5px;">
             <option value="fisse-corrente">Fisse: Alimentari/Bollette</option>
             <option value="fisse-annuale">Fisse: RCA/Tagliando (1/12)</option>
             <option value="var-abbigliamento">Variabili: Abbigliamento/Mediche</option>
             <option value="var-ristorazione">Variabili: Ristorazione</option>
             <option value="var-altro">Variabili: Altro</option>
         </select>
-        <input type="text" id="nota" placeholder="Nota">
+        <input type="text" id="nota" placeholder="Nota" style="width:100%; padding:8px;">
         <button onclick="salvaSpesa()">✅ Salva</button>
     </div>
 
     <div class="card">
-        <h3>📊 Riepilogo Mese Corrente</h3>
+        <h3>📊 Riepilogo Mese</h3>
         <div id="riepilogo"></div>
-        <div style="margin-top:10px; display:flex; justify-content:space-between;">
-            <button class="btn-extra" onclick="esportaCSV()">📥 CSV</button>
+        <div style="margin-top:15px; display:flex; justify-content:space-between;">
+            <button class="btn-extra" onclick="esportaCSV()">📥 Esporta</button>
             <button class="btn-extra" style="background:#e67e22;" onclick="importaCSV()">📤 Importa</button>
         </div>
     </div>
 
     <div class="card">
-        <h3>📋 Storico Spese</h3>
+        <h3>📋 Tutte le voci inserite</h3>
         <ul id="listaSpese"></ul>
     </div>
 </div>
@@ -62,7 +62,7 @@ function salvaSpesa() {
     const nota = document.getElementById('nota').value;
     const data = document.getElementById('dataSpesa').value;
     
-    if(!importo || !data) return;
+    if(!importo || !data) { alert("Compila tutti i campi"); return; }
 
     const impatto = cat === 'fisse-annuale' ? importo / 12 : importo;
     const tipo = cat.includes('fisse') ? 'fisse' : 'variabili';
@@ -73,38 +73,54 @@ function salvaSpesa() {
 }
 
 function render() {
-    const meseCorrente = new Date().getMonth();
-    const speseMese = spese.filter(s => new Date(s.data).getMonth() === meseCorrente);
+    // Header
+    const mesi = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
+    const now = new Date();
+    document.getElementById('headerMese').innerText = `${mesi[now.getMonth()]} ${now.getFullYear()}`;
+    
+    // Calcolo solo mese corrente per il riepilogo
+    const meseCorrente = now.getMonth();
+    const annoCorrente = now.getFullYear();
+    const speseMese = spese.filter(s => {
+        const d = new Date(s.data);
+        return d.getMonth() === meseCorrente && d.getFullYear() === annoCorrente;
+    });
     
     let tot = { fisse: 0, variabili: 0 };
     speseMese.forEach(s => tot[s.tipo] += s.impatto);
-    
-    document.getElementById('headerMese').innerText = new Date().toLocaleDateString('it-IT', {month:'long', year:'numeric'});
     
     document.getElementById('riepilogo').innerHTML = `
         <div class="stat-box"><span>Fisse:</span> <strong>${tot.fisse.toFixed(2)}€ / ${budget.fisse}€</strong></div>
         <div class="stat-box"><span>Variabili:</span> <strong>${tot.variabili.toFixed(2)}€ / ${budget.variabili}€</strong></div>
     `;
 
+    // Lista completa (tutte le voci)
     const lista = document.getElementById('listaSpese');
-    lista.innerHTML = speseMese.map((s, i) => `
-        <li>${s.data} - ${s.nota || s.cat}: <strong>${s.importoReale}€</strong> 
-        <button onclick="elimina(${i})" style="width:auto; padding:0 5px; background:#e74c3c;">X</button></li>
+    lista.innerHTML = spese.map((s, i) => `
+        <li>
+            <span>${s.data} | <strong>${s.importoReale}€</strong> (${s.nota || s.cat})</span>
+            <button onclick="elimina(${i})" style="width:auto; padding:2px 8px; background:#e74c3c; margin:0;">X</button>
+        </li>
     `).join('');
 }
 
-function elimina(i) { spese.splice(i, 1); localStorage.setItem('mieiDati', JSON.stringify(spese)); render(); }
+function elimina(i) { if(confirm("Eliminare?")) { spese.splice(i, 1); localStorage.setItem('mieiDati', JSON.stringify(spese)); render(); } }
 
 function esportaCSV() {
-    let csv = "Data,Tipo,Impatto,Categoria,Nota\n" + spese.map(s => `${s.data},${s.tipo},${s.impatto},${s.cat},"${s.nota}"`).join("\n");
+    let csv = "Data,Tipo,Impatto,Categoria,Nota,ImportoReale\n" + spese.map(s => `${s.data},${s.tipo},${s.impatto},${s.cat},"${s.nota}",${s.importoReale}`).join("\n");
     const a = document.createElement('a'); a.href = 'data:text/csv,' + encodeURI(csv); a.download = 'backup.csv'; a.click();
 }
 
 function importaCSV() {
-    const input = prompt("Incolla CSV:");
+    const input = prompt("Incolla il contenuto del CSV:");
     if (!input) return;
-    spese = input.split('\n').slice(1).map(l => { const [data, tipo, impatto, cat, nota] = l.split(','); return {data, tipo, impatto:parseFloat(impatto), cat, nota}; });
-    localStorage.setItem('mieiDati', JSON.stringify(spese)); render();
+    try {
+        spese = input.split('\n').slice(1).map(l => {
+            const [data, tipo, impatto, cat, nota, importoReale] = l.split(',');
+            return {data, tipo, impatto:parseFloat(impatto), cat, nota: nota.replace(/"/g,''), importoReale: parseFloat(importoReale)};
+        }).filter(s => s.data);
+        localStorage.setItem('mieiDati', JSON.stringify(spese)); render();
+    } catch(e) { alert("Errore"); }
 }
 
 render();
