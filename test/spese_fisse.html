@@ -2,79 +2,70 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Spese-Flash Controllo Budget</title>
+    <title>Spese-Flash Controllo Totale</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         body{font-family:Arial,sans-serif;margin:0;padding:0;background:#f5f5f5;color:#333}
         .container{max-width:480px;margin:0 auto;padding:1rem}
         .card{background:#fff;border-radius:8px;margin:.5rem 0;padding:.8rem;box-shadow:0 2px 4px rgba(0,0,0,.1)}
-        .alert-box { background: #e8f6f3; padding: 10px; border-radius: 8px; border-left: 5px solid #27ae60; font-size: 0.9rem; }
-        input,select{width:100%;padding:.4rem;margin:.2rem 0;border:1px solid #ccc;border-radius:4px}
-        button{background:#27ae60;color:#fff;border:none;border-radius:4px;padding:.5rem 1rem;width:100%;cursor:pointer}
+        .stat-box { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #eee; }
+        button{background:#27ae60;color:#fff;border:none;border-radius:4px;padding:.5rem;width:100%;cursor:pointer}
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="card">
-        <h3>➕ Inserisci Spesa</h3>
-        <input type="number" id="importo" placeholder="Importo reale pagato (€)" step="0.01" required>
+        <h3>➕ Aggiungi Spesa</h3>
+        <input type="number" id="importo" placeholder="Importo reale (€)" required>
         <select id="categoria">
-            <optgroup label="Fisse (Budget 800€)">
-                <option value="fisse-corrente">Alimentari / Bollette / Trasporti</option>
-                <option value="fisse-annuale">Manutenzione / RCA / Bolli (Dividi per 12)</option>
-            </optgroup>
-            <optgroup label="Variabili (Budget 455€)">
-                <option value="var-abbigliamento">Abbigliamento & Cura (Incl. Mediche)</option>
-                <option value="var-ristorazione">Ristorazione (Cibo/Caffè/Birre)</option>
-                <option value="var-viaggi">Viaggi</option>
-                <option value="var-altro">Altro</option>
-            </optgroup>
+            <option value="fisse-corrente">Fisse: Alimentari/Bollette</option>
+            <option value="fisse-annuale">Fisse: RCA/Tagliando (1/12)</option>
+            <option value="var-abbigliamento">Variabili: Abbigliamento/Mediche</option>
+            <option value="var-ristorazione">Variabili: Ristorazione</option>
+            <option value="var-altro">Variabili: Altro</option>
         </select>
-        <input type="text" id="nota" placeholder="Nota (es: bolletta gas, cene amici)">
-        <button id="salvaBtn">✅ Verifica Impatto</button>
+        <input type="text" id="nota" placeholder="Nota">
+        <button onclick="salvaSpesa()">✅ Salva e Aggiorna</button>
     </div>
 
     <div class="card">
-        <h3>📊 Stato Budget</h3>
-        <div id="risultato" class="alert-box">
-            Inserisci una spesa per vedere come incide sul tuo obiettivo.
-        </div>
+        <h3>📊 Riepilogo Budget Mese</h3>
+        <div id="riepilogo"></div>
     </div>
 </div>
 
 <script>
-const budgetTarget = { fisse: 800, variabili: 455 };
+const budget = { fisse: 800, variabili: 455 };
+let spese = JSON.parse(localStorage.getItem('mieiDati')) || [];
 
-document.getElementById('salvaBtn').addEventListener('click', () => {
+function salvaSpesa() {
     const importo = parseFloat(document.getElementById('importo').value);
     const cat = document.getElementById('categoria').value;
-    const nota = document.getElementById('nota').value || "Spesa";
+    const nota = document.getElementById('nota').value;
     
-    let impattoMese = 0;
-    let categoria = "";
-    
-    if (cat === 'fisse-corrente') {
-        impattoMese = importo;
-        categoria = "Fisse";
-    } else if (cat === 'fisse-annuale') {
-        impattoMese = importo / 12;
-        categoria = "Fisse (Quota 1/12)";
-    } else {
-        impattoMese = importo;
-        categoria = "Variabili";
-    }
-
+    // Logica di calcolo: se annuale divido per 12
+    const impatto = cat === 'fisse-annuale' ? importo / 12 : importo;
     const tipo = cat.includes('fisse') ? 'fisse' : 'variabili';
-    const residuo = budgetTarget[tipo] - impattoMese;
+    
+    spese.push({ tipo, impatto, cat, nota });
+    localStorage.setItem('mieiDati', JSON.stringify(spese));
+    render();
+}
 
-    document.getElementById('risultato').innerHTML = `
-        <strong>Categoria:</strong> ${categoria}<br>
-        <strong>Impatto sul mese:</strong> €${impattoMese.toFixed(2)}<br>
-        <strong>Residuo Budget ${tipo.toUpperCase()}:</strong> €${residuo.toFixed(2)}<br><br>
-        <em>Nota: ${nota}</em>
+function render() {
+    let tot = { fisse: 0, variabili: 0 };
+    spese.forEach(s => tot[s.tipo] += s.impatto);
+    
+    document.getElementById('riepilogo').innerHTML = `
+        <div class="stat-box"><span>Fisse (Target 800€):</span> <strong>${tot.fisse.toFixed(2)}€</strong></div>
+        <div class="stat-box"><span>Residuo Fisse:</span> <strong>${(budget.fisse - tot.fisse).toFixed(2)}€</strong></div>
+        <hr>
+        <div class="stat-box"><span>Variabili (Target 455€):</span> <strong>${tot.variabili.toFixed(2)}€</strong></div>
+        <div class="stat-box"><span>Residuo Variabili:</span> <strong>${(budget.variabili - tot.variabili).toFixed(2)}€</strong></div>
     `;
-});
+}
+render();
 </script>
 </body>
 </html>
