@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Analisi Portafoglio BCC/Investiper</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f9; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .result-box { margin-top: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Analisi Geografica Fondi</h2>
+    <div id="risultati"></div>
+</div>
+
+<script>
+const portafoglio = [
+    { isin: "LU3299474323", nome: "BCC Orizzonte 2032", zona: "Altro" },
+    { isin: "LU0565136552", nome: "First Eagle-Amundi Int", zona: "USA" },
+    { isin: "IT0005366072", nome: "Investiper Azionario Futuro", zona: "Altro" },
+    { isin: "IT0001484770", nome: "Investiper Az. Globale", zona: "Globale" },
+    { isin: "IT0001079398", nome: "Investiper Obbl. Globale", zona: "Altro" },
+    { isin: "LU3075366503", nome: "Pictet Smart Road Megatrend", zona: "USA" },
+    { isin: "IT0001249116", nome: "Investiper Az. Euro", zona: "Eurozona" },
+    { isin: "LU0355584037", nome: "JPM EU Gov Bond", zona: "Eurozona" },
+    { isin: "IT0001179297", nome: "Investiper Bilanciato 50", zona: "Globale" },
+    { isin: "AT0000A0KR10", nome: "Dachfonds Sudtirol", zona: "Globale" },
+    { isin: "LU0167160653", nome: "Pictet EUR SMT Bond", zona: "Eurozona" },
+    { isin: "IT0005647703", nome: "Investiper Obbl. PIR", zona: "Eurozona" }
+];
+
+function calcolaEsposizione() {
+    let tot = { USA: 0, Eurozona: 0, Emergenti: 0, Altro: 0, Globale: 0 };
+    // Immaginiamo una quota di investimento ipotetica per ogni fondo per il calcolo
+    const quota = 1000; 
+
+    portafoglio.forEach(f => {
+        // Logica semplificata per ripartire il rischio dei fondi attivi
+        if(f.zona === "Globale") { tot.USA += quota * 0.4; tot.Altro += quota * 0.6; }
+        else { tot[f.zona] += quota; }
+    });
+
+    let totale = Object.values(tot).reduce((a, b) => a + b, 0);
+    let html = "<ul>";
+    for(let zona in tot) {
+        html += `<li>${zona}: ${((tot[zona]/totale)*100).toFixed(1)}%</li>`;
+    }
+    html += "</ul>";
+    document.getElementById("risultati").innerHTML = html;
+}
+
+calcolaEsposizione();
+</script>
+</body>
+</html>
