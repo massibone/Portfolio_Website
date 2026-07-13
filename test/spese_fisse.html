@@ -9,7 +9,7 @@
         .container{max-width:480px;margin:0 auto;padding:1rem}
         .card{background:#fff;border-radius:8px;margin:.5rem 0;padding:.8rem;box-shadow:0 2px 4px rgba(0,0,0,.1)}
         header{background:#2c3e50;color:#fff;padding:1rem;text-align:center;border-radius:8px;margin-bottom:10px;font-weight:bold;}
-        .stat-box { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+        .stat-box { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; font-size: 0.9rem; }
         button{background:#27ae60;color:#fff;border:none;border-radius:4px;padding:.6rem;width:100%;cursor:pointer;margin-top:10px}
         .btn-extra{background:#3498db; width: 48%; display: inline-block; text-align: center; text-decoration: none; padding: 0.5rem; border-radius:4px; color:white; border:none; cursor:pointer;}
         ul{list-style:none;padding:0; font-size: 0.85rem;}
@@ -73,7 +73,6 @@ function salvaSpesa() {
     const data = document.getElementById('dataSpesa').value;
     if(!importo || !data) { alert("Compila tutti i campi"); return; }
     
-    // Calcolo impatto mensile (diviso 12 per le spese annuali)
     const impatto = cat === 'fisse-annuale' ? importo / 12 : importo;
     const tipo = cat.includes('fisse') ? 'fisse' : 'variabili';
     
@@ -86,24 +85,25 @@ function render() {
     const mesi = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
     document.getElementById('headerMese').innerText = `${mesi[dataVisualizzata.getMonth()]} ${dataVisualizzata.getFullYear()}`;
     
-    // Filtro intelligente per la propagazione delle spese fisse
+    // Filtro per spese fisiche del mese
     const speseMese = spese.filter(s => {
-        const dSpesa = new Date(s.data);
-        const dVis = new Date(dataVisualizzata.getFullYear(), dataVisualizzata.getMonth(), 1);
-        
-        if (s.cat === 'fisse-annuale') {
-            // Include se inserita prima o nel mese corrente
-            return dSpesa <= dVis; 
-        }
-        return dSpesa.getMonth() === dataVisualizzata.getMonth() && dSpesa.getFullYear() === dataVisualizzata.getFullYear();
+        const d = new Date(s.data);
+        return d.getMonth() === dataVisualizzata.getMonth() && d.getFullYear() === dataVisualizzata.getFullYear();
     });
     
-    let tot = { fisse: 0, variabili: 0 };
-    speseMese.forEach(s => tot[s.tipo] += s.impatto);
+    // Filtro per rate annuali attive (propagazione)
+    const dVis = new Date(dataVisualizzata.getFullYear(), dataVisualizzata.getMonth(), 1);
+    const rateAnnuali = spese.filter(s => s.cat === 'fisse-annuale' && new Date(s.data) <= dVis);
+    const totRate = rateAnnuali.reduce((acc, curr) => acc + curr.impatto, 0);
+    
+    let totMese = { fisse: 0, variabili: 0 };
+    speseMese.forEach(s => totMese[s.tipo] += s.impatto);
     
     document.getElementById('riepilogo').innerHTML = `
-        <div class="stat-box"><span>Fisse (Residuo Budget):</span> <strong>${(budget.fisse - tot.fisse).toFixed(2)}€</strong></div>
-        <div class="stat-box"><span>Variabili (Consumate):</span> <strong>${tot.variabili.toFixed(2)}€ / ${budget.variabili}€</strong></div>
+        <div class="stat-box"><span>Quota fissa/annuale attiva:</span> <strong>${totRate.toFixed(2)}€</strong></div>
+        <div class="stat-box"><span>Spese Fisse Mese:</span> <strong>${totMese.fisse.toFixed(2)}€</strong></div>
+        <div class="stat-box" style="border-top: 2px solid #333; margin-top:5px;"><span>Residuo Budget Fisse:</span> <strong>${(budget.fisse - totMese.fisse - totRate).toFixed(2)}€</strong></div>
+        <div class="stat-box"><span>Variabili (Consumate):</span> <strong>${totMese.variabili.toFixed(2)}€ / ${budget.variabili}€</strong></div>
     `;
 
     const lista = document.getElementById('listaSpese');
@@ -135,7 +135,7 @@ function importaCSV() {
             return {data, tipo, impatto:parseFloat(impatto), cat, nota: nota ? nota.replace(/"/g,'') : '', importoReale: parseFloat(importoReale)};
         });
         localStorage.setItem('mieiDati', JSON.stringify(spese)); render();
-    } catch(e) { alert("Errore durante l'importazione"); }
+    } catch(e) { alert("Errore importazione"); }
 }
 
 render();
