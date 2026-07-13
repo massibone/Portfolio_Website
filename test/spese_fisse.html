@@ -19,7 +19,11 @@
 <body>
 
 <div class="container">
-    <header id="headerMese"></header>
+    <header style="display:flex; justify-content:space-between; align-items:center;">
+        <button onclick="cambiaMese(-1)" style="width:auto; margin:0;">⬅️</button>
+        <span id="headerMese" style="flex-grow:1; text-align:center;"></span>
+        <button onclick="cambiaMese(1)" style="width:auto; margin:0;">➡️</button>
+    </header>
 
     <div class="card">
         <h3>➕ Aggiungi Spesa</h3>
@@ -46,7 +50,7 @@
     </div>
 
     <div class="card">
-        <h3>📋 Tutte le voci inserite</h3>
+        <h3>📋 Voci inserite nel mese</h3>
         <ul id="listaSpese"></ul>
     </div>
 </div>
@@ -54,36 +58,34 @@
 <script>
 const budget = { fisse: 800, variabili: 455 };
 let spese = JSON.parse(localStorage.getItem('mieiDati')) || [];
+let dataVisualizzata = new Date();
 document.getElementById('dataSpesa').valueAsDate = new Date();
+
+function cambiaMese(diff) {
+    dataVisualizzata.setMonth(dataVisualizzata.getMonth() + diff);
+    render();
+}
 
 function salvaSpesa() {
     const importo = parseFloat(document.getElementById('importo').value);
     const cat = document.getElementById('categoria').value;
     const nota = document.getElementById('nota').value;
     const data = document.getElementById('dataSpesa').value;
-    
     if(!importo || !data) { alert("Compila tutti i campi"); return; }
-
     const impatto = cat === 'fisse-annuale' ? importo / 12 : importo;
     const tipo = cat.includes('fisse') ? 'fisse' : 'variabili';
-    
     spese.push({ tipo, impatto, cat, nota, data, importoReale: importo });
     localStorage.setItem('mieiDati', JSON.stringify(spese));
     render();
 }
 
 function render() {
-    // Header
     const mesi = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
-    const now = new Date();
-    document.getElementById('headerMese').innerText = `${mesi[now.getMonth()]} ${now.getFullYear()}`;
+    document.getElementById('headerMese').innerText = `${mesi[dataVisualizzata.getMonth()]} ${dataVisualizzata.getFullYear()}`;
     
-    // Calcolo solo mese corrente per il riepilogo
-    const meseCorrente = now.getMonth();
-    const annoCorrente = now.getFullYear();
     const speseMese = spese.filter(s => {
         const d = new Date(s.data);
-        return d.getMonth() === meseCorrente && d.getFullYear() === annoCorrente;
+        return d.getMonth() === dataVisualizzata.getMonth() && d.getFullYear() === dataVisualizzata.getFullYear();
     });
     
     let tot = { fisse: 0, variabili: 0 };
@@ -94,14 +96,18 @@ function render() {
         <div class="stat-box"><span>Variabili:</span> <strong>${tot.variabili.toFixed(2)}€ / ${budget.variabili}€</strong></div>
     `;
 
-    // Lista completa (tutte le voci)
     const lista = document.getElementById('listaSpese');
-    lista.innerHTML = spese.map((s, i) => `
-        <li>
-            <span>${s.data} | <strong>${s.importoReale}€</strong> (${s.nota || s.cat})</span>
-            <button onclick="elimina(${i})" style="width:auto; padding:2px 8px; background:#e74c3c; margin:0;">X</button>
-        </li>
-    `).join('');
+    lista.innerHTML = speseMese.map((s, i) => {
+        const idx = spese.indexOf(s);
+        // Gestione pulita della descrizione (evita undefined)
+        const descrizione = s.nota ? s.nota : s.cat.replace('-', ': ');
+        return `
+            <li>
+                <span>${s.data} | <strong>${s.importoReale}€</strong> (${descrizione})</span>
+                <button onclick="elimina(${idx})" style="width:auto; padding:2px 8px; background:#e74c3c; margin:0;">X</button>
+            </li>
+        `;
+    }).join('');
 }
 
 function elimina(i) { if(confirm("Eliminare?")) { spese.splice(i, 1); localStorage.setItem('mieiDati', JSON.stringify(spese)); render(); } }
@@ -115,12 +121,12 @@ function importaCSV() {
     const input = prompt("Incolla il contenuto del CSV:");
     if (!input) return;
     try {
-        spese = input.split('\n').slice(1).map(l => {
+        spese = input.split('\n').slice(1).filter(l => l.trim()).map(l => {
             const [data, tipo, impatto, cat, nota, importoReale] = l.split(',');
-            return {data, tipo, impatto:parseFloat(impatto), cat, nota: nota.replace(/"/g,''), importoReale: parseFloat(importoReale)};
-        }).filter(s => s.data);
+            return {data, tipo, impatto:parseFloat(impatto), cat, nota: nota ? nota.replace(/"/g,'') : '', importoReale: parseFloat(importoReale)};
+        });
         localStorage.setItem('mieiDati', JSON.stringify(spese)); render();
-    } catch(e) { alert("Errore"); }
+    } catch(e) { alert("Errore importazione"); }
 }
 
 render();
