@@ -72,8 +72,11 @@ function salvaSpesa() {
     const nota = document.getElementById('nota').value;
     const data = document.getElementById('dataSpesa').value;
     if(!importo || !data) { alert("Compila tutti i campi"); return; }
+    
+    // Calcolo impatto mensile (diviso 12 per le spese annuali)
     const impatto = cat === 'fisse-annuale' ? importo / 12 : importo;
     const tipo = cat.includes('fisse') ? 'fisse' : 'variabili';
+    
     spese.push({ tipo, impatto, cat, nota, data, importoReale: importo });
     localStorage.setItem('mieiDati', JSON.stringify(spese));
     render();
@@ -83,23 +86,29 @@ function render() {
     const mesi = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
     document.getElementById('headerMese').innerText = `${mesi[dataVisualizzata.getMonth()]} ${dataVisualizzata.getFullYear()}`;
     
+    // Filtro intelligente per la propagazione delle spese fisse
     const speseMese = spese.filter(s => {
-        const d = new Date(s.data);
-        return d.getMonth() === dataVisualizzata.getMonth() && d.getFullYear() === dataVisualizzata.getFullYear();
+        const dSpesa = new Date(s.data);
+        const dVis = new Date(dataVisualizzata.getFullYear(), dataVisualizzata.getMonth(), 1);
+        
+        if (s.cat === 'fisse-annuale') {
+            // Include se inserita prima o nel mese corrente
+            return dSpesa <= dVis; 
+        }
+        return dSpesa.getMonth() === dataVisualizzata.getMonth() && dSpesa.getFullYear() === dataVisualizzata.getFullYear();
     });
     
     let tot = { fisse: 0, variabili: 0 };
     speseMese.forEach(s => tot[s.tipo] += s.impatto);
     
     document.getElementById('riepilogo').innerHTML = `
-        <div class="stat-box"><span>Fisse:</span> <strong>${tot.fisse.toFixed(2)}€ / ${budget.fisse}€</strong></div>
-        <div class="stat-box"><span>Variabili:</span> <strong>${tot.variabili.toFixed(2)}€ / ${budget.variabili}€</strong></div>
+        <div class="stat-box"><span>Fisse (Residuo Budget):</span> <strong>${(budget.fisse - tot.fisse).toFixed(2)}€</strong></div>
+        <div class="stat-box"><span>Variabili (Consumate):</span> <strong>${tot.variabili.toFixed(2)}€ / ${budget.variabili}€</strong></div>
     `;
 
     const lista = document.getElementById('listaSpese');
     lista.innerHTML = speseMese.map((s, i) => {
         const idx = spese.indexOf(s);
-        // Gestione pulita della descrizione (evita undefined)
         const descrizione = s.nota ? s.nota : s.cat.replace('-', ': ');
         return `
             <li>
@@ -110,7 +119,7 @@ function render() {
     }).join('');
 }
 
-function elimina(i) { if(confirm("Eliminare?")) { spese.splice(i, 1); localStorage.setItem('mieiDati', JSON.stringify(spese)); render(); } }
+function elimina(i) { if(confirm("Eliminare questa spesa?")) { spese.splice(i, 1); localStorage.setItem('mieiDati', JSON.stringify(spese)); render(); } }
 
 function esportaCSV() {
     let csv = "Data,Tipo,Impatto,Categoria,Nota,ImportoReale\n" + spese.map(s => `${s.data},${s.tipo},${s.impatto},${s.cat},"${s.nota}",${s.importoReale}`).join("\n");
@@ -118,7 +127,7 @@ function esportaCSV() {
 }
 
 function importaCSV() {
-    const input = prompt("Incolla il contenuto del CSV:");
+    const input = prompt("Incolla il contenuto del file CSV di backup:");
     if (!input) return;
     try {
         spese = input.split('\n').slice(1).filter(l => l.trim()).map(l => {
@@ -126,7 +135,7 @@ function importaCSV() {
             return {data, tipo, impatto:parseFloat(impatto), cat, nota: nota ? nota.replace(/"/g,'') : '', importoReale: parseFloat(importoReale)};
         });
         localStorage.setItem('mieiDati', JSON.stringify(spese)); render();
-    } catch(e) { alert("Errore importazione"); }
+    } catch(e) { alert("Errore durante l'importazione"); }
 }
 
 render();
