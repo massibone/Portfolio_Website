@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Budget con ammortamenti (1/12)</title>
+  <style>
+    :root{--bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#667085;--line:#e4e7ec;--blue:#155eef;--green:#16803c;--orange:#b54708;--red:#b42318}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    main{max-width:900px;margin:auto;padding:20px 14px 36px} h1{font-size:1.55rem;margin:0 0 5px} h2{font-size:1.1rem;margin:0 0 14px} p{line-height:1.45}.muted{color:var(--muted);font-size:.92rem}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:14px 0;box-shadow:0 2px 7px rgba(16,24,40,.04)} label{display:block;font-weight:650;margin:10px 0 6px}
+    input,select,button{font:inherit}input[type=file],input[type=number],select{width:100%;padding:11px;border:1px solid #cfd4dc;border-radius:9px;background:#fff}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+    button{border:0;border-radius:9px;padding:11px 14px;font-weight:700;background:var(--blue);color:#fff;margin-top:14px;width:100%;cursor:pointer}.hidden{display:none}.summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.metric{border:1px solid var(--line);border-radius:11px;padding:12px}.metric strong{display:block;margin-top:3px;font-size:1.15rem}.good{color:var(--green)}.bad{color:var(--red)}
+    .bar{height:9px;background:#edf0f4;border-radius:99px;overflow:hidden;margin-top:8px}.bar>span{display:block;height:100%;background:var(--blue);border-radius:inherit}.bar.warn>span{background:var(--orange)}.bar.bad>span{background:var(--red)}
+    table{width:100%;border-collapse:collapse;font-size:.9rem}th,td{text-align:left;padding:9px 6px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--muted);font-weight:650}.right{text-align:right;white-space:nowrap}.table-wrap{overflow-x:auto}.status{margin-top:10px;font-size:.92rem}
+    @media(max-width:680px){.grid{grid-template-columns:1fr 1fr}.summary{grid-template-columns:1fr 1fr}}@media(max-width:430px){.grid,.summary{grid-template-columns:1fr}main{padding:16px 11px 28px}}
+  </style>
+</head>
+<body>
+<main>
+  <h1>Budget con ammortamenti (1/12)</h1>
+  <p class="muted">Carica il CSV esportato da “Spese‑Flash”. Il file viene elaborato solo sul dispositivo.</p>
+
+  <section class="card">
+    <h2>1. Carica il CSV</h2>
+    <input id="csvFile" type="file" accept=".csv,text/csv">
+    <p id="fileStatus" class="status muted">Nessun file caricato.</p>
+  </section>
+
+  <section class="card">
+    <h2>2. Parametri mensili</h2>
+    <p class="muted">Servono per confrontare ogni mese. Se i tuoi budget cambiano nel tempo, i confronti sono indicativi.</p>
+    <div class="grid">
+      <div><label for="salary">Stipendio</label><input id="salary" type="number" min="0" step="0.01" value="1500"></div>
+      <div><label for="fixedBudget">Budget fisse</label><input id="fixedBudget" type="number" min="0" step="0.01" value="800"></div>
+      <div><label for="variableBudget">Budget variabili</label><input id="variableBudget" type="number" min="0" step="0.01" value="450"></div>
+      <div><label for="savingsBudget">Risparmio</label><input id="savingsBudget" type="number" min="0" step="0.01" value="250"></div>
+    </div>
+    <label for="monthFilter">Mostra dettaglio di
