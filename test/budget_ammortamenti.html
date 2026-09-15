@@ -19,7 +19,7 @@
 <body>
 <main>
   <h1>Budget con ammortamenti (1/12)</h1>
-  <p class="muted">Carica il CSV esportato da “Spese‑Flash”. Il file viene elaborato solo sul dispositivo.</p>
+  <p class="muted">Carica il CSV esportato da “Spese‑Flash”. L’analisi parte in automatico.</p>
 
   <section class="card">
     <h2>1. Carica il CSV</h2>
@@ -36,4 +36,97 @@
       <div><label for="variableBudget">Budget variabili</label><input id="variableBudget" type="number" min="0" step="0.01" value="450"></div>
       <div><label for="savingsBudget">Risparmio</label><input id="savingsBudget" type="number" min="0" step="0.01" value="250"></div>
     </div>
-    <label for="monthFilter">Mostra dettaglio di
+    <label for="monthFilter">Mostra dettaglio di un mese</label>
+    <select id="monthFilter"><option value="">Tutti i mesi</option></select>
+    <button id="analyzeBtn">Ricalcola analisi</button>
+  </section>
+
+  <section id="results" class="hidden">
+    <section class="card">
+      <h2>Totale periodo caricato</h2>
+      <div class="summary">
+        <div class="metric"><span>Mesi trovati</span><strong id="monthsOut">0</strong></div>
+        <div class="metric"><span>Movimenti</span><strong id="countOut">0</strong></div>
+        <div class="metric"><span>Uscite totali</span><strong id="totalOut">€ 0,00</strong></div>
+        <div class="metric"><span>Spese fisse (corrente)</span><strong id="fixedOut">€ 0,00</strong></div>
+        <div class="metric"><span>Spese fisse (quote annuali)</span><strong id="annualOut">€ 0,00</strong></div>
+        <div class="metric"><span>Spese variabili</span><strong id="variableOut">€ 0,00</strong></div>
+        <div class="metric"><span>Stipendi stimati</span><strong id="salaryOut">€ 0,00</strong></div>
+        <div class="metric"><span>Risparmio pianificato</span><strong id="savingsOut">€ 0,00</strong></div>
+        <div class="metric"><span>Avanzo effettivo</span><strong id="balanceOut">€ 0,00</strong></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Andamento mensile</h2>
+      <p class="muted">Ogni riga riassume tutte le spese registrate in quel mese, con le quote annuali ripartite correttamente.</p>
+      <div class="table-wrap"><table><thead><tr><th>Mese</th><th class="right">Fisse corr.</th><th class="right">Fisse ann.</th><th class="right">Variabili</th><th class="right">Totale</th><th class="right">Avanzo</th></tr></thead><tbody id="monthsBody"></tbody></table></div>
+    </section>
+
+    <section class="card">
+      <h2 id="detailTitle">Tutte le spese</h2>
+      <p id="rowsInfo" class="muted"></p>
+      <div class="table-wrap"><table><thead><tr><th>Data</th><th>Tipo</th><th>Categoria</th><th>Nota</th><th class="right">Importo</th></tr></thead><tbody id="expensesBody"></tbody></table></div>
+    </section>
+  </section>
+</main>
+<script>
+  let rawRows=[]; const eur=new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'}); const $=id=>document.getElementById(id);
+
+  function parseAmount(v){let s=String(v??'').trim().replace(/€/g,'').replace(/\s/g,'');if(!s)return NaN;if(s.includes(',')&&s.includes('.'))s=s.lastIndexOf(',')>s.lastIndexOf('.')?s.replace(/\./g,'').replace(',', '.'):s.replace(/,/g,'');else if(s.includes(','))s=s.replace(',', '.');return Number(s)}
+
+  function splitLine(line,sep){let out=[],cur='',q=false;for(let i=0;i<line.length;i++){let c=line[i];if(c==='"'){if(q&&line[i+1]==='"'){cur+='"';i++}else q=!q}else if(c===sep&&!q){out.push(cur.trim());cur=''}else cur+=c}out.push(cur.trim());return out}
+
+  function monthFromDate(v){v=String(v).trim();if(/^\d{4}-\d{2}/.test(v))return v.slice(0,7);const m=v.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);return m?`${m[3]}-${m[2].padStart(2,'0')}`:''}
+
+  function monthsRemainingFrom(monthStr){
+    if(!/^\d{4}-\d{2}$/.test(monthStr)) return 12;
+    const [y,m]=monthStr.split('-').map(Number);
+    return 12 - (m-1);
+  }
+
+  function parseCsv(text){
+    const lines=text.replace(/\r\n?/g,'\n').split('\n').filter(x=>x.trim());
+    if(lines.length<2) throw new Error('Il CSV deve contenere intestazione e almeno una riga.');
+    const sep=(lines[0].match(/;/g)||[]).length>(lines[0].match(/,/g)||[]).length?';':',';
+    const heads=splitLine(lines[0],sep).map(h=>h.trim().toLowerCase());
+    const idx={};
+    ['data','tipo','impatto','categoria','nota','importoreale'].forEach(k=>{
+      const i=heads.indexOf(k);
+      if(i>=0) idx[k]=i;
+    });
+    if(idx.data===undefined || idx.categoria===undefined) throw new Error('CSV non valido: mancano le colonne attese.');
+    return lines.slice(1).map(line=>{
+      const c=splitLine(line,sep);
+      const get=k=> idx[k]!==undefined ? c[idx[k]] : '';
+      const data=get('data');
+      const tipo=get('tipo');
+      const impatto=parseAmount(get('impatto'));
+      const categoria=get('categoria');
+      const nota=get('nota').replace(/^"|"$/g,'');
+      const importoReale=parseAmount(get('importoreale')||get('impatto'));
+      return {data,tipo,importo:importoReale,cat:categoria,nota,impatto};
+    }).filter(r=>r.data||r.tipo||r.cat||Number.isFinite(r.importo));
+  }
+
+  function monthLabel(m){return new Date(`${m}-01T12:00:00`).toLocaleDateString('it-IT',{month:'long',year:'numeric'})}
+
+  function computeMonthly(rows){
+    const map={};
+    rows.forEach(r=>{
+      const m=monthFromDate(r.data)||'Senza data';
+      if(!map[m]) map[m]={fixedCorr:0,fixedAnn:0,variable:0,other:0,count:0};
+      const isAnnual=(r.cat||'').toLowerCase().includes('fisse-annuale');
+      const isFixed=(r.tipo||'').toLowerCase().includes('fisse');
+      const isVariable=(r.tipo||'').toLowerCase().includes('variabili');
+      if(isAnnual){
+        const monthsRem=monthsRemainingFrom(m);
+        const quota=(Number.isFinite(r.importo)?r.importo:0)/monthsRem;
+        map[m].fixedAnn+=quota;
+      } else if(isFixed){
+        map[m].fixedCorr+=Number.isFinite(r.importo)?r.importo:0;
+      } else if(isVariable){
+        map[m].variable+=Number.isFinite(r.importo)?r.importo:0;
+      } else {
+        map[m].other+=Number.isFinite(r.importo)?r.importo:0;
+      }
