@@ -11,7 +11,7 @@
         header{background:#2c3e50;color:#fff;padding:1rem;text-align:center;border-radius:8px;margin-bottom:10px;font-weight:bold;}
         .stat-box { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; font-size: 0.9rem; }
         button{background:#27ae60;color:#fff;border:none;border-radius:4px;padding:.6rem;width:100%;cursor:pointer;margin-top:10px}
-        .btn-extra{background:#3498db; width: 48%; display: inline-block; text-align: center; text-decoration: none; padding: 0.5rem; border-radius:4px; color:white; border:none; cursor:pointer;}
+        .btn-extra{background:#3498db; width: 48%; display: inline-block; text-align: center; text-decoration: none; padding: 0.5rem; border-radius:4px; color:white; border:none; cursor:pointer; box-sizing: border-box;}
         ul{list-style:none;padding:0; font-size: 0.85rem;}
         li{border-bottom:1px solid #eee; padding:8px 0; display:flex; justify-content:space-between; align-items:center;}
     </style>
@@ -27,16 +27,16 @@
 
     <div class="card">
         <h3>➕ Aggiungi Spesa</h3>
-        <input type="date" id="dataSpesa" style="width:100%; padding:8px; margin-bottom:5px;">
-        <input type="number" id="importo" placeholder="Importo reale (€)" style="width:100%; padding:8px; margin-bottom:5px;">
-        <select id="categoria" style="width:100%; padding:8px; margin-bottom:5px;">
+        <input type="date" id="dataSpesa" style="width:100%; padding:8px; margin-bottom:5px; box-sizing:border-box;">
+        <input type="number" id="importo" placeholder="Importo reale (€)" step="any" style="width:100%; padding:8px; margin-bottom:5px; box-sizing:border-box;">
+        <select id="categoria" style="width:100%; padding:8px; margin-bottom:5px; box-sizing:border-box;">
             <option value="fisse-corrente">Fisse: Alimentari/Bollette</option>
             <option value="fisse-annuale">Fisse: RCA/Tagliando (1/12)</option>
             <option value="var-abbigliamento">Variabili: Abbigliamento/Mediche</option>
             <option value="var-ristorazione">Variabili: Ristorazione</option>
             <option value="var-altro">Variabili: Altro</option>
         </select>
-        <input type="text" id="nota" placeholder="Nota" style="width:100%; padding:8px;">
+        <input type="text" id="nota" placeholder="Nota" style="width:100%; padding:8px; box-sizing:border-box;">
         <button onclick="salvaSpesa()">✅ Salva</button>
     </div>
 
@@ -45,7 +45,8 @@
         <div id="riepilogo"></div>
         <div style="margin-top:15px; display:flex; justify-content:space-between;">
             <button class="btn-extra" onclick="esportaCSV()">📥 Esporta</button>
-            <button class="btn-extra" style="background:#e67e22;" onclick="importaCSV()">📤 Importa</button>
+            <button class="btn-extra" style="background:#e67e22;" onclick="triggerImporta()">📤 Importa</button>
+            <input type="file" id="fileCsvInput" accept=".csv" style="display:none" onchange="importaCSV(event)">
         </div>
     </div>
 
@@ -69,15 +70,17 @@ function cambiaMese(diff) {
 function salvaSpesa() {
     const importo = parseFloat(document.getElementById('importo').value);
     const cat = document.getElementById('categoria').value;
-    const nota = document.getElementById('nota').value;
+    const nota = document.getElementById('nota').value.trim();
     const data = document.getElementById('dataSpesa').value;
-    if(!importo || !data) { alert("Compila tutti i campi"); return; }
+    if(!importo || !data) { alert("Compila tutti i campi obbligatori"); return; }
     
     const impatto = cat === 'fisse-annuale' ? importo / 12 : importo;
     const tipo = cat.includes('fisse') ? 'fisse' : 'variabili';
     
     spese.push({ tipo, impatto, cat, nota, data, importoReale: importo });
     localStorage.setItem('mieiDati', JSON.stringify(spese));
+    document.getElementById('importo').value = '';
+    document.getElementById('nota').value = '';
     render();
 }
 
@@ -85,13 +88,11 @@ function render() {
     const mesi = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
     document.getElementById('headerMese').innerText = `${mesi[dataVisualizzata.getMonth()]} ${dataVisualizzata.getFullYear()}`;
     
-    // Filtro per spese fisiche del mese
     const speseMese = spese.filter(s => {
         const d = new Date(s.data);
         return d.getMonth() === dataVisualizzata.getMonth() && d.getFullYear() === dataVisualizzata.getFullYear();
     });
     
-    // Filtro per rate annuali attive (propagazione)
     const dVis = new Date(dataVisualizzata.getFullYear(), dataVisualizzata.getMonth(), 1);
     const rateAnnuali = spese.filter(s => s.cat === 'fisse-annuale' && new Date(s.data) <= dVis);
     const totRate = rateAnnuali.reduce((acc, curr) => acc + curr.impatto, 0);
@@ -107,7 +108,7 @@ function render() {
     `;
 
     const lista = document.getElementById('listaSpese');
-    lista.innerHTML = speseMese.map((s, i) => {
+    lista.innerHTML = speseMese.map((s) => {
         const idx = spese.indexOf(s);
         const descrizione = s.nota ? s.nota : s.cat.replace('-', ': ');
         return `
@@ -119,23 +120,73 @@ function render() {
     }).join('');
 }
 
-function elimina(i) { if(confirm("Eliminare questa spesa?")) { spese.splice(i, 1); localStorage.setItem('mieiDati', JSON.stringify(spese)); render(); } }
-
-function esportaCSV() {
-    let csv = "Data,Tipo,Impatto,Categoria,Nota,ImportoReale\n" + spese.map(s => `${s.data},${s.tipo},${s.impatto},${s.cat},"${s.nota}",${s.importoReale}`).join("\n");
-    const a = document.createElement('a'); a.href = 'data:text/csv,' + encodeURI(csv); a.download = 'backup.csv'; a.click();
+function elimina(i) { 
+    if(confirm("Eliminare questa spesa?")) { 
+        spese.splice(i, 1); 
+        localStorage.setItem('mieiDati', JSON.stringify(spese)); 
+        render(); 
+    } 
 }
 
-function importaCSV() {
-    const input = prompt("Incolla il contenuto del file CSV di backup:");
-    if (!input) return;
-    try {
-        spese = input.split('\n').slice(1).filter(l => l.trim()).map(l => {
-            const [data, tipo, impatto, cat, nota, importoReale] = l.split(',');
-            return {data, tipo, impatto:parseFloat(impatto), cat, nota: nota ? nota.replace(/"/g,'') : '', importoReale: parseFloat(importoReale)};
-        });
-        localStorage.setItem('mieiDati', JSON.stringify(spese)); render();
-    } catch(e) { alert("Errore importazione"); }
+function esportaCSV() {
+    let csv = "Data,Tipo,Impatto,Categoria,Nota,ImportoReale\n" + spese.map(s => {
+        const notaPulita = s.nota ? `"${s.nota.replace(/"/g, '""')}"` : '""';
+        return `${s.data},${s.tipo},${s.impatto},${s.cat},${notaPulita},${s.importoReale}`;
+    }).join("\n");
+    
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); 
+    a.href = url; 
+    a.download = 'backup_spese.csv'; 
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function triggerImporta() {
+    document.getElementById('fileCsvInput').click();
+}
+
+function importaCSV(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const lines = e.target.result.split('\n').slice(1);
+            let nuoveSpese = [];
+            
+            for (let line of lines) {
+                if (!line.trim()) continue;
+                // Regex per gestire correttamente le virgole racchiuse tra virgolette nel campo nota
+                const row = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || line.split(',');
+                if (row.length >= 6) {
+                    const data = row[0].trim();
+                    const tipo = row[1].trim();
+                    const impatto = parseFloat(row[2]);
+                    const cat = row[3].trim();
+                    let nota = row[4].trim().replace(/^"|"$/g, '').replace(/""/g, '"');
+                    const importoReale = parseFloat(row[5]);
+                    
+                    nuoveSpese.push({ data, tipo, impatto, cat, nota, importoReale });
+                }
+            }
+            
+            if (nuoveSpese.length > 0) {
+                spese = nuoveSpese;
+                localStorage.setItem('mieiDati', JSON.stringify(spese));
+                render();
+                alert("Importazione completata con successo!");
+            } else {
+                alert("Nessun dato valido trovato nel file.");
+            }
+        } catch(err) {
+            alert("Errore durante l'importazione del file CSV.");
+        }
+        event.target.value = ''; // Reset input file
+    };
+    reader.readAsText(file);
 }
 
 render();
