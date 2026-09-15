@@ -130,3 +130,106 @@
       } else {
         map[m].other+=Number.isFinite(r.importo)?r.importo:0;
       }
+      map[m].count++;
+    });
+    return map;
+  }
+
+  function render(){
+    if(!rawRows.length){
+      alert('Prima carica un file CSV valido!');
+      return;
+    }
+    const salary=Number($('salary').value)||0;
+    const fixedBudget=Number($('fixedBudget').value)||0;
+    const variableBudget=Number($('variableBudget').value)||0;
+    const savings=Number($('savingsBudget').value)||0;
+
+    const map=computeMonthly(rawRows);
+    const months=Object.keys(map).sort();
+    const filter=$('monthFilter');
+    const old=filter.value;
+    filter.innerHTML='<option value="">Tutti i mesi</option>'+months.map(m=>`<option value="${m}">${m==='Senza data'?m:monthLabel(m)}</option>`).join('');
+    if(months.includes(old)) filter.value=old;
+
+    let fCorr=0,fAnn=0,v=0,o=0,count=0;
+    Object.values(map).forEach(x=>{fCorr+=x.fixedCorr;fAnn+=x.fixedAnn;v+=x.variable;o+=x.other;count+=x.count});
+    const total=fCorr+fAnn+v+o;
+    const datedMonths=months.filter(m=>m!=='Senza data').length;
+
+    $('monthsOut').textContent=datedMonths;
+    $('countOut').textContent=rawRows.length;
+    $('totalOut').textContent=eur.format(total);
+    $('fixedOut').textContent=eur.format(fCorr);
+    $('annualOut').textContent=eur.format(fAnn);
+    $('variableOut').textContent=eur.format(v);
+    $('salaryOut').textContent=eur.format(salary*datedMonths);
+    $('savingsOut').textContent=eur.format(savings*datedMonths);
+    const bal=salary*datedMonths-total;
+    $('balanceOut').textContent=eur.format(bal);
+    $('balanceOut').className=bal>=0?'good':'bad';
+
+    const mb=$('monthsBody'); mb.innerHTML='';
+    months.forEach(m=>{
+      const x=map[m];
+      const t=x.fixedCorr+x.fixedAnn+x.variable+x.other;
+      const b=salary-t;
+      const tr=document.createElement('tr');
+      const label=m==='Senza data'?m:monthLabel(m);
+      [label,eur.format(x.fixedCorr),eur.format(x.fixedAnn),eur.format(x.variable),eur.format(t),eur.format(b)].forEach((z,i)=>{
+        const td=document.createElement('td'); td.textContent=z;
+        if(i>0) td.className='right';
+        if(i===5) td.classList.add(b>=0?'good':'bad');
+        tr.appendChild(td);
+      });
+      mb.appendChild(tr);
+    });
+
+    showDetails();
+    $('results').classList.remove('hidden');
+  }
+
+  function showDetails(){
+    const selected=$('monthFilter').value;
+    const rows=rawRows.filter(r=>!selected||monthFromDate(r.data)===selected);
+    $('detailTitle').textContent=selected?`Spese di ${monthLabel(selected)}`:'Tutte le spese';
+    $('rowsInfo').textContent=`${rows.length} movimenti mostrati.`;
+    const body=$('expensesBody'); body.innerHTML='';
+    rows.sort((a,b)=>String(b.data).localeCompare(String(a.data))).forEach(r=>{
+      const tr=document.createElement('tr');
+      // CORRETTO: r.note sostituito con r.nota
+      [r.data,r.tipo||'—',r.cat||'—',r.nota||'—',eur.format(r.importo)].forEach((z,i)=>{
+        const td=document.createElement('td'); td.textContent=z;
+        if(i===4) td.className='right';
+        tr.appendChild(td);
+      });
+      body.appendChild(tr);
+    });
+  }
+
+  $('csvFile').addEventListener('change',e=>{
+    const file=e.target.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=()=>{
+      try{
+        rawRows=parseCsv(reader.result);
+        $('fileStatus').textContent=`Caricato: ${file.name} — ${rawRows.length} righe lette.`;
+        render(); 
+      }catch(err){
+        rawRows=[];
+        $('fileStatus').textContent=`Errore: ${err.message}`;
+        $('results').classList.add('hidden');
+      }
+    };
+    reader.readAsText(file,'UTF-8');
+  });
+
+  $('analyzeBtn').addEventListener('click',render);
+  $('monthFilter').addEventListener('change',showDetails);
+  $('salary').addEventListener('change',render);
+  $('fixedBudget').addEventListener('change',render);
+  $('variableBudget').addEventListener('change',render);
+  $('savingsBudget').addEventListener('change',render);
+</script>
+</body>
+</html>
