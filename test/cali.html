@@ -49,7 +49,6 @@
         .font-heading {
             font-family: 'Montserrat', sans-serif;
         }
-        /* Custom Neo-brutalism Scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -60,7 +59,6 @@
             background: #FF2A85;
             border-radius: 4px;
         }
-        /* Checkbox custom style */
         .pop-checkbox:checked + div {
             background-color: #00F5D4;
             color: #121212;
@@ -81,7 +79,7 @@
             </div>
             <div>
                 <h1 class="font-heading font-black text-lg tracking-wider text-popYellow leading-none uppercase">FITLOOP</h1>
-                <p class="text-xs font-semibold text-gray-400">Phase 3 (Weeks 9–12)</p>
+                <p class="text-xs font-semibold text-gray-400">Phase 3 (Skills & Strength)</p>
             </div>
         </div>
         <div class="flex items-center gap-2">
@@ -106,7 +104,7 @@
                         Consigliato Oggi
                     </span>
                     <h2 id="suggestedWorkoutTitle" class="font-heading font-black text-2xl mt-2">SESSIONE A</h2>
-                    <p id="suggestedWorkoutDesc" class="text-xs font-medium text-pink-100 mt-0.5">Push + Quad + Core Focus</p>
+                    <p id="suggestedWorkoutDesc" class="text-xs font-medium text-pink-100 mt-0.5">Handstand Skill + Dips Focus</p>
                 </div>
                 <button onclick="autoSelectToday()" class="bg-popYellow text-black border-2 border-black shadow-pop-sm rounded-xl font-bold px-3 py-2 text-xs flex items-center gap-1 active:translate-x-0.5 active:translate-y-0.5 transition-all">
                     <i class="fa-solid fa-play"></i> Avvia
@@ -136,9 +134,9 @@
                 <i id="warmupChevron" class="fa-solid fa-chevron-down text-popCyan transition-transform"></i>
             </div>
             <div id="warmupContent" class="hidden mt-3 pt-3 border-t-2 border-gray-800 text-xs text-gray-300 space-y-2">
-                <p>• <strong>Polsi & Spalle:</strong> 10-15 rotazioni lente per parte.</p>
+                <p>• <strong>Polsi & Spalle:</strong> 10-15 rotazioni lente (Fondamentale per Handstand e L-Sit!).</p>
                 <p>• <strong>Cat-Camels:</strong> 10 ripetizioni per la mobilità spinale.</p>
-                <p>• <strong>YTWL o Scapulae Pulls:</strong> 10 reps per attivare le scapole.</p>
+                <p>• <strong>Scapulae Pulls & Depressions:</strong> 10 reps per attivare le scapole.</p>
                 <p>• <strong>Hollow Hold & Arch Hold:</strong> 15 secondi ciascuno.</p>
             </div>
         </div>
@@ -229,8 +227,19 @@
 
     <!-- JavaScript Logic -->
     <script>
-        // Fitloop Progression Database
+        // Fitloop Progression Database (Integrate con Handstand, Dip ed L-Sit)
         const PROGRESSIONS_DB = {
+            handstand: {
+                name: "Handstand Progression",
+                category: "A",
+                prereqs: "Nessun prerequisito stringente, ma occorre una buona mobilità di polsi.",
+                items: [
+                    "Wall Wall-Climb / Chest-to-Wall Hold (Hold statico)",
+                    "Wall Handstand Kick-Up (Schiena al muro)",
+                    "Chest-to-Wall Handstand Balance (Stacco piedi dal muro)",
+                    "Freestanding Handstand (Verticale Libera)"
+                ]
+            },
             pullup: {
                 name: "Pull-Up Rung",
                 category: "A/B",
@@ -241,6 +250,17 @@
                     "Pull-Ups (Trazioni Prone)",
                     "Chest-to-Bar Pull-Ups",
                     "L-Sit Pull-Ups"
+                ]
+            },
+            dip: {
+                name: "Dip Progression",
+                category: "A",
+                prereqs: "Aver completato le Diamond Push-Ups con forma pulita.",
+                items: [
+                    "Bench Dips",
+                    "Negative Dips (alle parallele/anelli)",
+                    "Parallel Bar Dips (Dips complete)",
+                    "Weighted Dips / Ring Dips"
                 ]
             },
             pushup: {
@@ -289,11 +309,17 @@
                     "Full Wheel / Shoulder Bridge"
                 ]
             },
-            deadbug: {
-                name: "Dead Bug",
-                category: "A",
+            lsit: {
+                name: "L-Sit Progression",
+                category: "B",
+                prereqs: "60s Hollow Body • Polsi forti (Planks/Hangs) • Forza tricipiti basale (Dips/Bench)",
                 items: [
-                    "Dead Bug"
+                    "NVS / Foot-Supported L-Sit",
+                    "One-Foot Supported L-Sit",
+                    "Tuck L-Sit (Parallele o terra)",
+                    "Advanced Tuck L-Sit",
+                    "Single-Leg L-Sit",
+                    "Full L-Sit"
                 ]
             },
             splitsquat: {
@@ -304,33 +330,26 @@
                     "Bodyweight Split Squat",
                     "Elevated Rear Foot Split Squat"
                 ]
-            },
-            hollowbody: {
-                name: "Hollow Body Hold",
-                category: "B",
-                items: [
-                    "Hollow Body Hold"
-                ]
             }
         };
 
-        // Workout Template Definitions Phase 3 (Weeks 9–12)
+        // Workout Template Definitions Phase 3
         const WORKOUT_TEMPLATES = {
             'A': [
+                { key: 'handstand', sets: 3, reps: '20-40 sec hold', rest: 90, rir: 'Focus equilibrio/forma' },
+                { key: 'dip', sets: 3, reps: '5-8 reps', rest: 150, rir: '2-3 RIR' },
                 { key: 'pullup', sets: 3, reps: '3-5 neg / 4-8 full', rest: 150, rir: '2-3 clean reps' },
-                { key: 'pushup', sets: 4, reps: '6-10', rest: 150, rir: '2-3 RIR' },
                 { key: 'squat', sets: 4, reps: '8-12 / lato', rest: 120, rir: '2-3 RIR' },
                 { key: 'row', sets: 3, reps: '6-10', rest: 120, rir: '2-3 RIR' },
-                { key: 'bridge', sets: 4, reps: '10-15 / lato', rest: 75, rir: '2-3 RIR' },
-                { key: 'deadbug', sets: 2, reps: '8-12 / lato', rest: 75, rir: '2-3 reps / 5s spare' }
+                { key: 'bridge', sets: 4, reps: '10-15 / lato', rest: 75, rir: '2-3 RIR' }
             ],
             'B': [
-                { key: 'pullup', sets: 3, reps: '3-5 neg / 4-8 full', rest: 150, rir: '2-3 clean reps' },
+                { key: 'lsit', sets: 3, reps: '10-30 sec hold', rest: 120, rir: 'Stop prima del cedimento' },
                 { key: 'pushup', sets: 4, reps: '6-10', rest: 150, rir: '2-3 RIR' },
+                { key: 'pullup', sets: 3, reps: '3-5 neg / 4-8 full', rest: 150, rir: '2-3 clean reps' },
                 { key: 'splitsquat', sets: 4, reps: '8-12 / lato', rest: 120, rir: '2-3 RIR' },
                 { key: 'row', sets: 3, reps: '6-10', rest: 120, rir: '2-3 RIR' },
-                { key: 'bridge', sets: 4, reps: '10-15 / lato', rest: 75, rir: '2-3 RIR' },
-                { key: 'hollowbody', sets: 2, reps: '15-30 sec', rest: 75, rir: '2-3 reps / 5s spare' }
+                { key: 'bridge', sets: 4, reps: '10-15 / lato', rest: 75, rir: '2-3 RIR' }
             ]
         };
 
@@ -339,6 +358,7 @@
         let userProgressions = {};
         let timerInterval = null;
         let timeLeft = 0;
+        let toastTimeout = null;
 
         // Initialize Application
         window.onload = function() {
@@ -351,19 +371,20 @@
 
         // Load Preferences from LocalStorage
         function loadUserPreferences() {
-            const saved = localStorage.getItem('calisthenics_user_progressions_phase3');
+            const saved = localStorage.getItem('calisthenics_user_progressions_phase3_v2');
             if (saved) {
                 userProgressions = JSON.parse(saved);
             } else {
                 userProgressions = {
-                    pullup: 2,
+                    handstand: 0,
+                    pullup: 3,
+                    dip: 1,
                     pushup: 3,
                     squat: 2,
                     row: 2,
                     bridge: 2,
-                    deadbug: 0,
-                    splitsquat: 1,
-                    hollowbody: 0
+                    lsit: 0,
+                    splitsquat: 1
                 };
             }
         }
@@ -376,7 +397,7 @@
                     userProgressions[key] = parseInt(selectEl.value);
                 }
             }
-            localStorage.setItem('calisthenics_user_progressions_phase3', JSON.stringify(userProgressions));
+            localStorage.setItem('calisthenics_user_progressions_phase3_v2', JSON.stringify(userProgressions));
             toggleSettingsModal();
             renderWorkoutPlan();
             showToast('Preferenze aggiornate!', 'success');
@@ -398,10 +419,10 @@
             const descEl = document.getElementById('suggestedWorkoutDesc');
             if (currentSession === 'A') {
                 titleEl.innerText = "SESSIONE A (FASE 3)";
-                descEl.innerText = "Pull-up • Push-up • Squat • Row • Bridge • Dead Bug";
+                descEl.innerText = "Handstand • Dips • Pull-up • Squat • Row • Bridge";
             } else {
                 titleEl.innerText = "SESSIONE B (FASE 3)";
-                descEl.innerText = "Pull-up • Push-up • Split Squat • Row • Bridge • Hollow Body";
+                descEl.innerText = "L-Sit • Push-up • Pull-up • Split Squat • Row • Bridge";
             }
         }
 
@@ -422,4 +443,206 @@
                 tabB.className = "py-3.5 px-4 font-heading font-extrabold text-base rounded-xl border-3 border-black shadow-pop transition-all bg-[#252336] text-gray-400 border-gray-800 flex items-center justify-center gap-2";
             } else {
                 tabB.className = "py-3.5 px-4 font-heading font-extrabold text-base rounded-xl border-3 border-black shadow-pop transition-all bg-popYellow text-black flex items-center justify-center gap-2";
-                tabA.className = "py-3.5 px-4 font-heading font-
+                tabA.className = "py-3.5 px-4 font-heading font-extrabold text-base rounded-xl border-3 border-black shadow-pop transition-all bg-[#252336] text-gray-400 border-gray-800 flex items-center justify-center gap-2";
+            }
+            renderWorkoutPlan();
+        }
+
+        // Render Workout Plan
+        function renderWorkoutPlan() {
+            const container = document.getElementById('exerciseListContainer');
+            container.innerHTML = '';
+            
+            const exercises = WORKOUT_TEMPLATES[currentSession];
+            
+            exercises.forEach((ex, index) => {
+                const dbEntry = PROGRESSIONS_DB[ex.key];
+                const progIndex = userProgressions[ex.key] !== undefined ? userProgressions[ex.key] : 0;
+                const progName = dbEntry.items[progIndex] || "Esercizio Base";
+                
+                let prereqsBadge = '';
+                if (dbEntry.prereqs) {
+                    prereqsBadge = `<div class="text-[10px] bg-[#121212] border border-gray-700 text-popYellow p-2 rounded-lg mt-1 font-medium">⚠️ <strong>Prerequisiti:</strong> ${dbEntry.prereqs}</div>`;
+                }
+
+                let setsHTML = '';
+                for (let s = 1; s <= ex.sets; s++) {
+                    setsHTML += `
+                        <label class="relative flex items-center justify-center cursor-pointer">
+                            <input type="checkbox" class="sr-only pop-checkbox" data-exercise="${ex.key}" data-set="${s}">
+                            <div class="w-9 h-9 bg-[#121212] border-2 border-black rounded-lg font-black text-xs flex items-center justify-center text-gray-400 shadow-sm transition-all">
+                                <span>${s}</span>
+                                <i class="fa-solid fa-check hidden text-xs"></i>
+                            </div>
+                        </label>
+                    `;
+                }
+
+                const card = document.createElement('div');
+                card.className = "bg-[#181623] border-3 border-black rounded-2xl p-4 shadow-pop space-y-3";
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div class="pr-2">
+                            <span class="text-[10px] font-bold bg-gray-800 text-popCyan px-2 py-0.5 rounded-md uppercase tracking-wide">Esercizio ${index + 1}</span>
+                            <h4 class="font-heading font-black text-base text-white mt-1">${progName}</h4>
+                            <p class="text-xs text-gray-400 font-medium">Target: ${ex.reps} • Riposo: ${ex.rest}s</p>
+                            ${prereqsBadge}
+                        </div>
+                        <button onclick="startTimerSeconds(${ex.rest})" class="w-9 h-9 bg-popPink border-2 border-black shadow-pop-sm rounded-xl flex items-center justify-center text-white text-xs active:translate-y-0.5 transition-all shrink-0" title="Avvia Timer Recupero">
+                            <i class="fa-solid fa-stopwatch"></i>
+                        </button>
+                    </div>
+                    <div class="pt-2 border-t border-gray-800 flex items-center justify-between">
+                        <span class="text-xs font-bold text-gray-300">Set completati:</span>
+                        <div class="flex gap-2">
+                            ${setsHTML}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Render Settings Options
+        function renderSettingsOptions() {
+            const listContainer = document.getElementById('progressionSettingsList');
+            listContainer.innerHTML = '';
+
+            for (let key in PROGRESSIONS_DB) {
+                const prog = PROGRESSIONS_DB[key];
+                const currentVal = userProgressions[key] !== undefined ? userProgressions[key] : 0;
+
+                let optionsHTML = '';
+                prog.items.forEach((item, idx) => {
+                    optionsHTML += `<option value="${idx}" ${idx === currentVal ? 'selected' : ''}>${idx + 1}. ${item}</option>`;
+                });
+
+                const div = document.createElement('div');
+                div.className = "space-y-1.5";
+                div.innerHTML = `
+                    <label class="block font-heading font-bold text-xs text-gray-300 uppercase">${prog.name}</label>
+                    <select id="setting_select_${key}" class="w-full bg-[#121212] border-2 border-black rounded-xl p-2.5 text-xs text-white font-medium focus:outline-none focus:border-popCyan">
+                        ${optionsHTML}
+                    </select>
+                `;
+                listContainer.appendChild(div);
+            }
+        }
+
+        // Modals Toggle Helpers
+        function toggleSettingsModal() {
+            const modal = document.getElementById('settingsModal');
+            if (modal.classList.contains('opacity-0')) {
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+            } else {
+                modal.classList.add('opacity-0', 'pointer-events-none');
+            }
+        }
+
+        function toggleHistoryModal() {
+            const modal = document.getElementById('historyModal');
+            if (modal.classList.contains('opacity-0')) {
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+            } else {
+                modal.classList.add('opacity-0', 'pointer-events-none');
+            }
+        }
+
+        function toggleWarmup() {
+            const content = document.getElementById('warmupContent');
+            const chevron = document.getElementById('warmupChevron');
+            content.classList.toggle('hidden');
+            chevron.classList.toggle('rotate-180');
+        }
+
+        // Timer Functions
+        function startTimerSeconds(seconds) {
+            const widget = document.getElementById('timerWidget');
+            widget.classList.remove('translate-y-32', 'opacity-0', 'pointer-events-none');
+            
+            if (timerInterval) clearInterval(timerInterval);
+            timeLeft = seconds;
+            updateTimerDisplay();
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    stopTimer();
+                    showToast('Tempo di recupero scaduto!', 'success');
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const min = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+            const sec = String(timeLeft % 60).padStart(2, '0');
+            document.getElementById('timerDisplay').innerText = `${min}:${sec}`;
+        }
+
+        function addTimerTime(seconds) {
+            timeLeft += seconds;
+            updateTimerDisplay();
+        }
+
+        function stopTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            const widget = document.getElementById('timerWidget');
+            widget.classList.add('translate-y-32', 'opacity-0', 'pointer-events-none');
+        }
+
+        // Complete Workout
+        function completeWorkout() {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+
+            const history = JSON.parse(localStorage.getItem('calisthenics_history_phase3') || '[]');
+            history.unshift({
+                session: currentSession,
+                date: dateStr
+            });
+            localStorage.setItem('calisthenics_history_phase3', JSON.stringify(history));
+            localStorage.setItem('calisthenics_last_session', currentSession);
+
+            loadHistory();
+            showToast(`Sessione ${currentSession} completata con successo!`, 'success');
+            determineTodayWorkout();
+            renderWorkoutPlan();
+        }
+
+        function loadHistory() {
+            const historyList = document.getElementById('historyList');
+            const history = JSON.parse(localStorage.getItem('calisthenics_history_phase3') || '[]');
+            
+            if (history.length === 0) {
+                historyList.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">Nessun allenamento registrato ancora.</p>';
+                return;
+            }
+
+            historyList.innerHTML = '';
+            history.forEach(item => {
+                const div = document.createElement('div');
+                div.className = "bg-[#121212] border-2 border-black p-3 rounded-xl flex justify-between items-center";
+                div.innerHTML = `
+                    <div>
+                        <span class="font-heading font-black text-sm text-popYellow">Sessione ${item.session}</span>
+                        <p class="text-[10px] text-gray-400">${item.date}</p>
+                    </div>
+                    <span class="w-7 h-7 bg-popCyan text-black font-black text-xs rounded-lg flex items-center justify-center border border-black">
+                        <i class="fa-solid fa-check"></i>
+                    </span>
+                `;
+                historyList.appendChild(div);
+            });
+        }
+
+        // Toast Helper
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMsg.innerText = msg;
+            if (type === 'success') {
+                toast.className = "fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-popYellow text-black border-3 border-black
