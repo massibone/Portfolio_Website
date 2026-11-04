@@ -637,12 +637,25 @@
             });
         }
 
-        // Toast Helper
+                // Toast Helper
         function showToast(msg, type = 'success') {
             const toast = document.getElementById('toast');
             const toastMsg = document.getElementById('toastMsg');
             const toastIcon = document.getElementById('toastIcon');
 
             toastMsg.innerText = msg;
-            if (type === 'success') {
-                toast.className = "fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-popYellow text-black border-3 border-black
+            toastIcon.className = type === 'success'
+                ? 'fa-solid fa-circle-check'
+                : 'fa-solid fa-circle-info';
+
+            // mostra
+            toast.classList.remove('-translate-y-20', 'opacity-0');
+
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.add('-translate-y-20', 'opacity-0');
+            }, 2500);
+        }
+    </script>
+</body>
+</html>
