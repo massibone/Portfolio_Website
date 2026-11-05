@@ -230,9 +230,34 @@
         <span id="toastMsg">Messaggio Toast</span>
     </div>
 
-    <!-- JavaScript Logic -->
+        <!-- JavaScript Logic -->
     <script>
-        // Fitloop Progression Database (Integrate con Handstand, Dip ed L-Sit)
+        // Accesso sicuro a localStorage (Chrome mobile può bloccarlo)
+        const store = {
+            get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+            set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+        };
+
+        const SQUAT_ITEMS = [
+            "Assisted Squat",
+            "Squat",
+            "Split Squat / Reverse Lunge",
+            "Bulgarian Split Squat",
+            "Beginner Shrimp Squat",
+            "Intermediate Shrimp Squat",
+            "Advanced Shrimp Squat"
+        ];
+
+        const SQUAT_LINKS = [
+            "https://www.fitloop.app/exercises/assisted-bodyweight-squat",
+            "https://www.fitloop.app/exercises/bodyweight-squat",
+            "https://www.fitloop.app/exercises/split-squat",
+            "https://www.fitloop.app/exercises/bulgarian-split-squats",
+            "https://www.fitloop.app/exercises/beginner-shrimp-squats",
+            "https://www.fitloop.app/exercises/intermediate-shrimp-squats",
+            "https://www.fitloop.app/exercises/advanced-shrimp-squats"
+        ];
+
         const PROGRESSIONS_DB = {
             handstand: {
                 name: "Handstand Progression",
@@ -285,49 +310,17 @@
                 ]
             },
             squat: {
-    name: "Squat Rung (Sessione A)",
-    category: "A",
-    links: [
-        "https://www.fitloop.app/exercises/assisted-bodyweight-squat",
-        "https://www.fitloop.app/exercises/bodyweight-squat",
-        "https://www.fitloop.app/exercises/split-squat",
-        "https://www.fitloop.app/exercises/bulgarian-split-squats",
-        "https://www.fitloop.app/exercises/beginner-shrimp-squats",
-        "https://www.fitloop.app/exercises/intermediate-shrimp-squats",
-        "https://www.fitloop.app/exercises/advanced-shrimp-squats"
-    ],
-    items: [
-        "Assisted Squat",
-        "Squat",
-        "Split Squat / Reverse Lunge",
-        "Bulgarian Split Squat",
-        "Beginner Shrimp Squat",
-        "Intermediate Shrimp Squat",
-        "Advanced Shrimp Squat"
-    ]
-},
-squatB: {
-    name: "Squat Rung (Sessione B)",
-    category: "B",
-    links: [
-        "https://www.fitloop.app/exercises/assisted-bodyweight-squat",
-        "https://www.fitloop.app/exercises/bodyweight-squat",
-        "https://www.fitloop.app/exercises/split-squat",
-        "https://www.fitloop.app/exercises/bulgarian-split-squats",
-        "https://www.fitloop.app/exercises/beginner-shrimp-squats",
-        "https://www.fitloop.app/exercises/intermediate-shrimp-squats",
-        "https://www.fitloop.app/exercises/advanced-shrimp-squats"
-    ],
-    items: [
-        "Assisted Squat",
-        "Squat",
-        "Split Squat / Reverse Lunge",
-        "Bulgarian Split Squat",
-        "Beginner Shrimp Squat",
-        "Intermediate Shrimp Squat",
-        "Advanced Shrimp Squat"
-    ]
-},
+                name: "Squat Rung (Sessione A)",
+                category: "A",
+                links: SQUAT_LINKS,
+                items: SQUAT_ITEMS
+            },
+            squatB: {
+                name: "Squat Rung (Sessione B)",
+                category: "B",
+                links: SQUAT_LINKS,
+                items: SQUAT_ITEMS
+            },
             row: {
                 name: "Row Rung",
                 category: "A/B",
@@ -362,11 +355,9 @@ squatB: {
                     "Single-Leg L-Sit",
                     "Full L-Sit"
                 ]
-           
-            
+            }
         };
 
-        // Workout Template Definitions Phase 3
         const WORKOUT_TEMPLATES = {
             'A': [
                 { key: 'pullup', sets: 3, reps: '3-5 neg / 4-8 full', rest: 150, rir: '2-3 clean reps' },
@@ -375,8 +366,7 @@ squatB: {
                 { key: 'row', sets: 3, reps: '6-10', rest: 120, rir: '2-3 RIR' },
                 { key: 'handstand', sets: 3, reps: '20-40 sec hold', rest: 90, rir: 'Focus equilibrio/forma' },
                 { key: 'dip', sets: 3, reps: '5-8 reps', rest: 150, rir: '2-3 RIR' },
-                { key: 'bridge', sets: 4, reps: '10-15 / lato', rest: 75, rir: '2-3 RIR' }    
-       
+                { key: 'bridge', sets: 4, reps: '10-15 / lato', rest: 75, rir: '2-3 RIR' }
             ],
             'B': [
                 { key: 'pullup', sets: 3, reps: '3-5 neg / 4-8 full', rest: 150, rir: '2-3 clean reps' },
@@ -388,6 +378,8 @@ squatB: {
                 { key: 'bridge', sets: 4, reps: '10-15 / lato', rest: 75, rir: '2-3 RIR' }
             ]
         };
+
+        const PROG_STORAGE_KEY = 'calisthenics_user_progressions_phase3_v3';
 
         // State Management
         let currentSession = 'A';
@@ -405,27 +397,23 @@ squatB: {
             loadHistory();
         };
 
-        // Load Preferences from LocalStorage
         function loadUserPreferences() {
-            const saved = localStorage.getItem('calisthenics_user_progressions_phase3_v2');
-            if (saved) {
-                userProgressions = JSON.parse(saved);
-            } else {
-                userProgressions = {
-                    pullup: 3,
-                    pushup: 3,
-                    squat: 2,
-                    row: 2,
-                    bridge: 2,
-                    handstand: 0,
-                    dip: 1,
-                    lsit: 0
-                    
-                };
-            }
+            const defaults = {
+                pullup: 3,
+                pushup: 3,
+                squat: 1,
+                squatB: 2,
+                row: 2,
+                bridge: 2,
+                handstand: 0,
+                dip: 1,
+                lsit: 0
+            };
+            let saved = null;
+            try { saved = JSON.parse(store.get(PROG_STORAGE_KEY)); } catch (e) {}
+            userProgressions = Object.assign({}, defaults, saved || {});
         }
 
-        // Save Preferences
         function saveProgressionSettings() {
             for (let key in PROGRESSIONS_DB) {
                 const selectEl = document.getElementById(`setting_select_${key}`);
@@ -433,21 +421,17 @@ squatB: {
                     userProgressions[key] = parseInt(selectEl.value);
                 }
             }
-            localStorage.setItem('calisthenics_user_progressions_phase3_v2', JSON.stringify(userProgressions));
+            store.set(PROG_STORAGE_KEY, JSON.stringify(userProgressions));
             toggleSettingsModal();
             renderWorkoutPlan();
             showToast('Preferenze aggiornate!', 'success');
         }
 
-        // Smart workout recommendation logic
         function determineTodayWorkout() {
-            const lastSession = localStorage.getItem('calisthenics_last_session');
-            if (lastSession === 'A') {
-                currentSession = 'B';
-            } else {
-                currentSession = 'A';
-            }
+            const lastSession = store.get('calisthenics_last_session');
+            currentSession = (lastSession === 'A') ? 'B' : 'A';
             updateTodayBanner();
+            switchSession(currentSession);
         }
 
         function updateTodayBanner() {
@@ -455,10 +439,10 @@ squatB: {
             const descEl = document.getElementById('suggestedWorkoutDesc');
             if (currentSession === 'A') {
                 titleEl.innerText = "SESSIONE A (FASE 3)";
-                descEl.innerText = "Handstand • Dips • Pull-up • Squat • Row • Bridge";
+                descEl.innerText = "Pull-up • Push-up • Squat • Row • Handstand • Dips • Bridge";
             } else {
                 titleEl.innerText = "SESSIONE B (FASE 3)";
-                descEl.innerText = "L-Sit • Push-up • Pull-up • Split Squat • Row • Bridge";
+                descEl.innerText = "Pull-up • Push-up • Squat • Row • Handstand • Dips • Bridge";
             }
         }
 
@@ -467,39 +451,40 @@ squatB: {
             showToast(`Sessione ${currentSession} selezionata!`, 'info');
         }
 
-        // Switch Session Tab
         function switchSession(sessionKey) {
             currentSession = sessionKey;
-            
+
             const tabA = document.getElementById('tabABtn');
             const tabB = document.getElementById('tabBBtn');
+            const base = "py-3.5 px-4 font-heading font-extrabold text-base rounded-xl border-3 border-black shadow-pop transition-all flex items-center justify-center gap-2 ";
+            const on = "bg-popYellow text-black";
+            const off = "bg-[#252336] text-gray-400 border-gray-800";
 
-            if (sessionKey === 'A') {
-                tabA.className = "py-3.5 px-4 font-heading font-extrabold text-base rounded-xl border-3 border-black shadow-pop transition-all bg-popYellow text-black flex items-center justify-center gap-2";
-                tabB.className = "py-3.5 px-4 font-heading font-extrabold text-base rounded-xl border-3 border-black shadow-pop transition-all bg-[#252336] text-gray-400 border-gray-800 flex items-center justify-center gap-2";
-            } else {
-                tabB.className = "py-3.5 px-4 font-heading font-extrabold text-base rounded-xl border-3 border-black shadow-pop transition-all bg-popYellow text-black flex items-center justify-center gap-2";
-                tabA.className = "py-3.5 px-4 font-heading font-extrabold text-base rounded-xl border-3 border-black shadow-pop transition-all bg-[#252336] text-gray-400 border-gray-800 flex items-center justify-center gap-2";
-            }
+            tabA.className = base + (sessionKey === 'A' ? on : off);
+            tabB.className = base + (sessionKey === 'B' ? on : off);
             renderWorkoutPlan();
         }
 
-        // Render Workout Plan
         function renderWorkoutPlan() {
             const container = document.getElementById('exerciseListContainer');
             container.innerHTML = '';
-            
+
             const exercises = WORKOUT_TEMPLATES[currentSession];
-            
+
             exercises.forEach((ex, index) => {
                 const dbEntry = PROGRESSIONS_DB[ex.key];
                 const progIndex = userProgressions[ex.key] !== undefined ? userProgressions[ex.key] : 0;
                 const progName = dbEntry.items[progIndex] || "Esercizio Base";
-                
+                const progLink = dbEntry.links ? dbEntry.links[progIndex] : null;
+
                 let prereqsBadge = '';
                 if (dbEntry.prereqs) {
                     prereqsBadge = `<div class="text-[10px] bg-[#121212] border border-gray-700 text-popYellow p-2 rounded-lg mt-1 font-medium">⚠️ <strong>Prerequisiti:</strong> ${dbEntry.prereqs}</div>`;
                 }
+
+                const linkHTML = progLink
+                    ? `<a href="${progLink}" target="_blank" rel="noopener" class="inline-block text-[10px] text-popCyan font-bold underline mb-1">Vedi esercizio ↗</a>`
+                    : '';
 
                 let setsHTML = '';
                 for (let s = 1; s <= ex.sets; s++) {
@@ -521,7 +506,8 @@ squatB: {
                         <div class="pr-2">
                             <span class="text-[10px] font-bold bg-gray-800 text-popCyan px-2 py-0.5 rounded-md uppercase tracking-wide">Esercizio ${index + 1}</span>
                             <h4 class="font-heading font-black text-base text-white mt-1">${progName}</h4>
-                            <p class="text-xs text-gray-400 font-medium">Target: ${ex.reps} • Riposo: ${ex.rest}s</p>
+                            ${linkHTML}
+                            <p class="text-xs text-gray-400 font-medium">Target: ${ex.reps} • Riposo: ${ex.rest}s • ${ex.rir}</p>
                             ${prereqsBadge}
                         </div>
                         <button onclick="startTimerSeconds(${ex.rest})" class="w-9 h-9 bg-popPink border-2 border-black shadow-pop-sm rounded-xl flex items-center justify-center text-white text-xs active:translate-y-0.5 transition-all shrink-0" title="Avvia Timer Recupero">
@@ -539,7 +525,6 @@ squatB: {
             });
         }
 
-        // Render Settings Options
         function renderSettingsOptions() {
             const listContainer = document.getElementById('progressionSettingsList');
             listContainer.innerHTML = '';
@@ -550,9 +535,9 @@ squatB: {
 
                 let optionsHTML = '';
                 prog.items.forEach((item, idx) => {
-    const label = prog.labels ? prog.labels[idx] : (idx + 1);
-    optionsHTML += `<option value="${idx}" ${idx === currentVal ? 'selected' : ''}>${label}. ${item}</option>`;
-});
+                    const label = prog.labels ? prog.labels[idx] : (idx + 1);
+                    optionsHTML += `<option value="${idx}" ${idx === currentVal ? 'selected' : ''}>${label}. ${item}</option>`;
+                });
 
                 const div = document.createElement('div');
                 div.className = "space-y-1.5";
@@ -566,7 +551,6 @@ squatB: {
             }
         }
 
-        // Modals Toggle Helpers
         function toggleSettingsModal() {
             const modal = document.getElementById('settingsModal');
             if (modal.classList.contains('opacity-0')) {
@@ -596,7 +580,7 @@ squatB: {
         function startTimerSeconds(seconds) {
             const widget = document.getElementById('timerWidget');
             widget.classList.remove('translate-y-32', 'opacity-0', 'pointer-events-none');
-            
+
             if (timerInterval) clearInterval(timerInterval);
             timeLeft = seconds;
             updateTimerDisplay();
@@ -634,24 +618,22 @@ squatB: {
             const now = new Date();
             const dateStr = now.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
 
-            const history = JSON.parse(localStorage.getItem('calisthenics_history_phase3') || '[]');
-            history.unshift({
-                session: currentSession,
-                date: dateStr
-            });
-            localStorage.setItem('calisthenics_history_phase3', JSON.stringify(history));
-            localStorage.setItem('calisthenics_last_session', currentSession);
+            let history = [];
+            try { history = JSON.parse(store.get('calisthenics_history_phase3') || '[]'); } catch (e) {}
+            history.unshift({ session: currentSession, date: dateStr });
+            store.set('calisthenics_history_phase3', JSON.stringify(history));
+            store.set('calisthenics_last_session', currentSession);
 
             loadHistory();
             showToast(`Sessione ${currentSession} completata con successo!`, 'success');
             determineTodayWorkout();
-            renderWorkoutPlan();
         }
 
         function loadHistory() {
             const historyList = document.getElementById('historyList');
-            const history = JSON.parse(localStorage.getItem('calisthenics_history_phase3') || '[]');
-            
+            let history = [];
+            try { history = JSON.parse(store.get('calisthenics_history_phase3') || '[]'); } catch (e) {}
+
             if (history.length === 0) {
                 historyList.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">Nessun allenamento registrato ancora.</p>';
                 return;
@@ -674,7 +656,7 @@ squatB: {
             });
         }
 
-                // Toast Helper
+        // Toast Helper
         function showToast(msg, type = 'success') {
             const toast = document.getElementById('toast');
             const toastMsg = document.getElementById('toastMsg');
@@ -685,7 +667,6 @@ squatB: {
                 ? 'fa-solid fa-circle-check'
                 : 'fa-solid fa-circle-info';
 
-            // mostra
             toast.classList.remove('-translate-y-20', 'opacity-0');
 
             if (toastTimeout) clearTimeout(toastTimeout);
