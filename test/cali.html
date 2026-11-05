@@ -523,8 +523,9 @@
 
                 let optionsHTML = '';
                 prog.items.forEach((item, idx) => {
-                    optionsHTML += `<option value="${idx}" ${idx === currentVal ? 'selected' : ''}>${idx + 1}. ${item}</option>`;
-                });
+    const label = prog.labels ? prog.labels[idx] : (idx + 1);
+    optionsHTML += `<option value="${idx}" ${idx === currentVal ? 'selected' : ''}>${label}. ${item}</option>`;
+});
 
                 const div = document.createElement('div');
                 div.className = "space-y-1.5";
